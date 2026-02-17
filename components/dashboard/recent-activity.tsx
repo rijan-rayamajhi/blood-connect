@@ -45,7 +45,7 @@ export function RecentActivity() {
     ]
 
     return (
-        <Card className="col-span-3">
+        <Card className="col-span-full lg:col-span-3">
             <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
                 <CardDescription>

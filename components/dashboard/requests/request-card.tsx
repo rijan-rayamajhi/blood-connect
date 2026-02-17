@@ -64,10 +64,11 @@ export function RequestCard({ request }: RequestCardProps) {
                 </Badge>
 
                 {request.status === 'Pending' && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="destructive"
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => updateStatus(request.id, 'Rejected')}
                         >
                             Reject
@@ -75,7 +76,7 @@ export function RequestCard({ request }: RequestCardProps) {
                         <Button
                             variant="default"
                             size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-700"
+                            className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
                             onClick={() => updateStatus(request.id, 'Accepted')}
                         >
                             Accept

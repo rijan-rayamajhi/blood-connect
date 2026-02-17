@@ -44,11 +44,11 @@ const sidebarItems = [
     },
 ]
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string }) {
     const pathname = usePathname()
 
     return (
-        <div className="w-64 border-r bg-card h-full hidden md:flex md:flex-col">
+        <div className={cn("w-64 border-r bg-card h-full flex flex-col", className)}>
             <div className="p-6 border-b">
                 <Link href="/" className="flex items-center gap-2">
                     <Activity className="h-6 w-6 text-critical animate-pulse" />

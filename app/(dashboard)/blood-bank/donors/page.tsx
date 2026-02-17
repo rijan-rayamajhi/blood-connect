@@ -19,6 +19,10 @@ import {
 import { TableSkeleton } from "@/components/ui/skeletons"
 import { EmptyState } from "@/components/ui/empty-state"
 
+import { Badge } from "@/components/ui/badge"
+import { Phone, Mail } from "lucide-react"
+import { DonorActions } from "@/components/dashboard/donors/donor-actions"
+
 export default function DonorsPage() {
     const { donors, isLoading } = useDonorStore()
     const [filterValue, setFilterValue] = useState("")
@@ -81,7 +85,58 @@ export default function DonorsPage() {
             {isLoading ? (
                 <TableSkeleton />
             ) : filteredDonors.length > 0 ? (
-                <DataTable columns={columns} data={filteredDonors} />
+                <>
+                    <div className="hidden md:block">
+                        <DataTable columns={columns} data={filteredDonors} />
+                    </div>
+                    <div className="md:hidden grid grid-cols-1 gap-4">
+                        {filteredDonors.map((donor) => (
+                            <Card key={donor.id}>
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="font-semibold text-lg">{donor.fullName}</div>
+                                            <div className="text-xs text-muted-foreground">{donor.id}</div>
+                                        </div>
+                                        <Badge variant="outline" className="font-bold">
+                                            {donor.bloodGroup}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex justify-between items-center">
+                                        <Badge
+                                            variant={donor.status === "Available" ? "default" : donor.status === "Ineligible" ? "destructive" : "secondary"}
+                                            className={donor.status === "Available" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                                        >
+                                            {donor.status}
+                                        </Badge>
+                                        <div className="text-sm font-medium">
+                                            {donor.totalDonations} Donations
+                                        </div>
+                                    </div>
+
+                                    <div className="text-sm text-muted-foreground">
+                                        Last Donation: <span className="text-foreground">{donor.lastDonationDate}</span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center pt-2 border-t mt-2">
+                                        <div className="flex gap-4">
+                                            <a href={`tel:${donor.contactNumber}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+                                                <Phone className="h-4 w-4" />
+                                                <span className="sr-only">Call</span>
+                                            </a>
+                                            <a href={`mailto:${donor.email}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+                                                <Mail className="h-4 w-4" />
+                                                <span className="sr-only">Email</span>
+                                            </a>
+                                        </div>
+                                        <DonorActions donor={donor} />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <EmptyState
                     title="No Donors Found"

@@ -16,6 +16,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Shield, Mail, Phone } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { StaffActions } from "@/components/dashboard/staff/staff-actions"
 
 export default function StaffPage() {
     const staffList = useStaffStore((state) => state.staffList)
@@ -77,7 +81,62 @@ export default function StaffPage() {
                 </CardContent>
             </Card>
 
-            <DataTable columns={columns} data={filteredStaff} />
+            <div className="hidden md:block">
+                <DataTable columns={columns} data={filteredStaff} />
+            </div>
+            <div className="md:hidden grid grid-cols-1 gap-4">
+                {filteredStaff.map((staff) => (
+                    <Card key={staff.id}>
+                        <CardContent className="p-4 space-y-3">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${staff.name}`} alt={staff.name} />
+                                        <AvatarFallback>
+                                            {staff.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-semibold">{staff.name}</div>
+                                        <div className="text-xs text-muted-foreground">{staff.email}</div>
+                                    </div>
+                                </div>
+                                <StaffActions staff={staff} />
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                <Badge variant={
+                                    staff.role === "Admin" ? "destructive" :
+                                        staff.role === "Inventory Manager" ? "default" :
+                                            staff.role === "Request Handler" ? "secondary" : "outline"
+                                } className="whitespace-nowrap">
+                                    {staff.role === "Admin" && <Shield className="mr-1 h-3 w-3" />}
+                                    {staff.role}
+                                </Badge>
+                                <div className="flex items-center gap-2 px-2 py-0.5 border rounded-full text-xs bg-muted/50">
+                                    <span className={`h-2 w-2 rounded-full ${staff.status === "Active" ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"}`} />
+                                    <span>{staff.status}</span>
+                                </div>
+                            </div>
+
+                            <div className="text-sm text-muted-foreground pt-1">
+                                Last Active: <span className="text-foreground">{new Date(staff.lastActive).toLocaleDateString()}</span>
+                            </div>
+
+                            <div className="flex gap-4 pt-2 border-t mt-2">
+                                <a href={`mailto:${staff.email}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
+                                    <Mail className="h-4 w-4" />
+                                    <span className="sr-only">Email</span>
+                                </a>
+                                <a href={`tel:${staff.phone}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
+                                    <Phone className="h-4 w-4" />
+                                    <span className="sr-only">Call</span>
+                                </a>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
         </div>
     )
 }

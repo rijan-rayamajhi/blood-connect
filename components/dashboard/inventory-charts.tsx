@@ -23,7 +23,7 @@ export function InventoryCharts({ items }: InventoryChartsProps) {
     })
 
     return (
-        <Card className="col-span-4">
+        <Card className="col-span-full lg:col-span-4">
             <CardHeader>
                 <CardTitle>Inventory Levels</CardTitle>
             </CardHeader>

@@ -88,14 +88,14 @@ function BloodBankDashboardContent({ items, isLoading }: { items: InventoryItem[
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1">Real-time overview of blood bank operations.</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <p className="text-muted-foreground mt-1 text-sm sm:text-base">Real-time overview of blood bank operations.</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                <div className="flex gap-2 w-full md:w-auto">
+                    <Button variant="outline" size="sm" className="flex-1 md:flex-none">
                         Download Report
                     </Button>
-                    <Button className="bg-critical hover:bg-critical/90" size="sm">
+                    <Button className="bg-critical hover:bg-critical/90 flex-1 md:flex-none" size="sm">
                         <Siren className="mr-2 h-4 w-4" />
                         Broadcast SOS
                     </Button>
@@ -113,7 +113,7 @@ function BloodBankDashboardContent({ items, isLoading }: { items: InventoryItem[
             />
 
             {/* KPI Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {items.length === 0 ? (
                     <div className="col-span-full">
                         <AlertBanner
@@ -139,7 +139,7 @@ function BloodBankDashboardContent({ items, isLoading }: { items: InventoryItem[
 
             {/* Charts and Activity Grid */}
             {items.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
                     <InventoryCharts items={items} />
                     <RecentActivity />
                 </div>

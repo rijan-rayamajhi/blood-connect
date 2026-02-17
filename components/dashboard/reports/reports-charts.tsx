@@ -108,7 +108,7 @@ export function DemandTrendChart() {
 
 export function UtilizationChart() {
     return (
-        <Card className="col-span-2 lg:col-span-1">
+        <Card className="col-span-full lg:col-span-1">
             <CardHeader>
                 <CardTitle>Utilization by Blood Group</CardTitle>
                 <CardDescription>Collected Units vs. Issued Units</CardDescription>
@@ -134,7 +134,7 @@ export function UtilizationChart() {
 
 export function ExpiryPieChart() {
     return (
-        <Card className="col-span-2 lg:col-span-1">
+        <Card className="col-span-full lg:col-span-1">
             <CardHeader>
                 <CardTitle>Wastage Analysis</CardTitle>
                 <CardDescription>Breakdown of discarded units</CardDescription>
@@ -168,39 +168,65 @@ export function ExpiryPieChart() {
 
 export function HospitalDemandTable() {
     return (
-        <Card className="col-span-2">
+        <Card className="col-span-full">
             <CardHeader>
                 <CardTitle>Hospital Demand Analysis</CardTitle>
                 <CardDescription>Top requesting hospitals and fulfillment rates</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Hospital Name</TableHead>
-                            <TableHead className="text-right">Total Requests</TableHead>
-                            <TableHead className="text-right">Fulfilled</TableHead>
-                            <TableHead className="text-right">Fulfillment Rate</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {hospitalDemandData.map((hospital) => (
-                            <TableRow key={hospital.id}>
-                                <TableCell className="font-medium">
-                                    {hospital.name}
-                                    <div className="text-xs text-muted-foreground">{hospital.id}</div>
-                                </TableCell>
-                                <TableCell className="text-right">{hospital.requests}</TableCell>
-                                <TableCell className="text-right">{hospital.fulfilled}</TableCell>
-                                <TableCell className="text-right">
-                                    <Badge variant={hospital.rate >= 95 ? "default" : hospital.rate >= 85 ? "secondary" : "destructive"}>
-                                        {hospital.rate}%
-                                    </Badge>
-                                </TableCell>
+                <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Hospital Name</TableHead>
+                                <TableHead className="text-right">Total Requests</TableHead>
+                                <TableHead className="text-right">Fulfilled</TableHead>
+                                <TableHead className="text-right">Rate</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {hospitalDemandData.map((hospital) => (
+                                <TableRow key={hospital.id}>
+                                    <TableCell className="font-medium">
+                                        {hospital.name}
+                                        <div className="text-xs text-muted-foreground">{hospital.id}</div>
+                                    </TableCell>
+                                    <TableCell className="text-right">{hospital.requests}</TableCell>
+                                    <TableCell className="text-right">{hospital.fulfilled}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Badge variant={hospital.rate >= 95 ? "default" : hospital.rate >= 85 ? "secondary" : "destructive"}>
+                                            {hospital.rate}%
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <div className="md:hidden space-y-4">
+                    {hospitalDemandData.map((hospital) => (
+                        <div key={hospital.id} className="flex flex-col gap-2 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="font-semibold">{hospital.name}</div>
+                                    <div className="text-xs text-muted-foreground">{hospital.id}</div>
+                                </div>
+                                <Badge variant={hospital.rate >= 95 ? "default" : hospital.rate >= 85 ? "secondary" : "destructive"}>
+                                    {hospital.rate}% Rate
+                                </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm pt-2 border-t">
+                                <div>
+                                    <span className="text-muted-foreground">Requests:</span> <span className="font-medium">{hospital.requests}</span>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground">Fulfilled:</span> <span className="font-medium">{hospital.fulfilled}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )

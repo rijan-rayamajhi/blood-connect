@@ -30,7 +30,7 @@ export function SosWidget({ hospitalName, bloodGroup, units, location, timeElaps
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
 
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 rounded-lg bg-background/10 backdrop-blur-sm p-6 text-white border border-white/20">
+            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-4 rounded-lg bg-background/10 backdrop-blur-sm p-6 text-white border border-white/20">
                 <div className="flex items-start gap-4 w-full md:w-auto">
                     <div className="p-3 bg-white/20 rounded-full shrink-0 animate-pulse">
                         <Siren className="h-8 w-8 text-white" />

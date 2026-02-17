@@ -12,11 +12,11 @@ export default function DashboardLayout({
         <ProtectedRoute>
             <div className="flex h-screen overflow-hidden bg-muted/10">
                 <EmergencyAlert />
-                <Sidebar />
+                <Sidebar className="hidden md:flex" />
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <Header />
-                    <main className="flex-1 overflow-y-auto p-6">
-                        <div className="container mx-auto max-w-7xl">
+                    <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-4 sm:p-6 lg:p-8">
+                        <div className="w-full max-w-screen-2xl mx-auto">
                             {children}
                         </div>
                     </main>

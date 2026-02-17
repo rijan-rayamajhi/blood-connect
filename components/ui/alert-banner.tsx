@@ -41,7 +41,7 @@ export function AlertBanner({ type = "normal", title, description, className, on
                 exit={{ opacity: 0, height: 0 }}
                 className={className}
             >
-                <Alert variant="default" className={cn("bg-background shadow-sm", styles[type])}>
+                <Alert variant="default" className={cn("bg-background shadow-sm px-4 py-3", styles[type])}>
                     <Icon className="h-4 w-4" />
                     <AlertTitle>{title}</AlertTitle>
                     {description && <AlertDescription>{description}</AlertDescription>}
