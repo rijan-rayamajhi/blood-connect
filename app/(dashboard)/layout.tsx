@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { EmergencyAlert } from "@/components/dashboard/emergency-alert"
 
 export default function DashboardLayout({
     children,
@@ -10,6 +11,7 @@ export default function DashboardLayout({
     return (
         <ProtectedRoute>
             <div className="flex h-screen overflow-hidden bg-muted/10">
+                <EmergencyAlert />
                 <Sidebar />
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <Header />

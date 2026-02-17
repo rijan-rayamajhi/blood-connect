@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type UserRole = 'blood-bank' | 'hospital' | 'admin'
+export type UserRole = "admin" | "hospital" | "blood-bank"
 
 export interface User {
     id: string

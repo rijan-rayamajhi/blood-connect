@@ -1,0 +1,183 @@
+"use client"
+
+import { useState } from "react"
+import { Search, Filter } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AddInventoryModal } from "@/components/dashboard/inventory/add-inventory-modal"
+import { DataTable } from "@/components/ui/data-table"
+import { columns } from "@/components/dashboard/inventory/columns"
+import { TableSkeleton, CardListSkeleton } from "@/components/ui/skeletons"
+import { EmptyState } from "@/components/ui/empty-state"
+
+import { useInventoryStore } from "@/lib/store/inventory-store"
+
+export default function InventoryPage() {
+    const [searchTerm, setSearchTerm] = useState("")
+    const { items, isLoading } = useInventoryStore()
+
+    // Simulate loading on mount (optional, if we want to show skeleton initially)
+    // const [isPageLoading, setIsPageLoading] = useState(true)
+    // useEffect(() => { setTimeout(() => setIsPageLoading(false), 1000) }, [])
+
+    // Simple filter logic for demonstration (DataTable handles most, but for external filters)
+    const filteredData = items.filter(item =>
+        item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.component.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
+                        <p className="text-muted-foreground mt-1">Manage blood units and components.</p>
+                    </div>
+                    <Button disabled>Add Item</Button>
+                </div>
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="h-10 w-full bg-muted animate-pulse rounded-md" />
+                    </CardContent>
+                </Card>
+                <div className="hidden md:block">
+                    <TableSkeleton />
+                </div>
+                <div className="md:hidden">
+                    <CardListSkeleton />
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
+                    <p className="text-muted-foreground mt-1">Manage blood units and components.</p>
+                </div>
+                <AddInventoryModal />
+            </div>
+
+            {/* Filter Bar */}
+            <Card>
+                <CardContent className="p-4 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by Unit ID or Component..."
+                            className="pl-9"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Select>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Blood Group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Groups</SelectItem>
+                                <SelectItem value="a_pos">A+</SelectItem>
+                                <SelectItem value="a_neg">A-</SelectItem>
+                                <SelectItem value="b_pos">B+</SelectItem>
+                                <SelectItem value="b_neg">B-</SelectItem>
+                                <SelectItem value="o_pos">O+</SelectItem>
+                                <SelectItem value="o_neg">O-</SelectItem>
+                                <SelectItem value="ab_pos">AB+</SelectItem>
+                                <SelectItem value="ab_neg">AB-</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Component" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Components</SelectItem>
+                                <SelectItem value="whole">Whole Blood</SelectItem>
+                                <SelectItem value="rbc">Packed RBC</SelectItem>
+                                <SelectItem value="platelets">Platelets</SelectItem>
+                                <SelectItem value="plasma">Plasma</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button variant="outline" className="w-full sm:w-auto md:hidden">
+                            <Filter className="mr-2 h-4 w-4" />
+                            More Filters
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Inventory List */}
+            {filteredData.length === 0 ? (
+                <EmptyState
+                    title="No Items Found"
+                    description={searchTerm ? `No items match "${searchTerm}"` : "Your inventory is empty."}
+                    actionLabel={searchTerm ? "Clear Search" : undefined}
+                    onAction={searchTerm ? () => setSearchTerm("") : undefined}
+                />
+            ) : (
+                <>
+                    {/* Desktop Table */}
+                    <div className="hidden md:block">
+                        <DataTable columns={columns} data={filteredData} searchKey="id" />
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden grid gap-4">
+                        {filteredData.map((item) => (
+                            <Card key={item.id}>
+                                <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-base">{item.id}</CardTitle>
+                                            <div className="text-sm text-muted-foreground mt-1">{item.component} • {item.quantity}ml</div>
+                                        </div>
+                                        <Badge variant="outline" className="font-bold">{item.group}</Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Collection:</span>
+                                        <span>{item.collectionDate}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Expires:</span>
+                                        <span className={new Date(item.expiryDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? "text-amber-600 font-medium" : ""}>
+                                            {item.expiryDate}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-2">
+                                        <Badge variant={
+                                            item.status === 'Available' ? 'default' :
+                                                item.status === 'Reserved' ? 'secondary' : 'destructive'
+                                        } className={
+                                            item.status === 'Available' ? 'bg-emerald-500 hover:bg-emerald-600' :
+                                                item.status === 'Reserved' ? 'bg-amber-500 hover:bg-amber-600' : ''
+                                        }>
+                                            {item.status}
+                                        </Badge>
+                                        <Button variant="ghost" size="sm" className="-mr-2 h-8">View Details</Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
