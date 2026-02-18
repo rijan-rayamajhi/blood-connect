@@ -1,5 +1,5 @@
 "use client"
-
+import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -40,7 +40,7 @@ export default function InventoryPage() {
             <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
                         <p className="text-muted-foreground mt-1">Manage blood units and components.</p>
                     </div>
                     <Button disabled>Add Item</Button>
@@ -65,7 +65,7 @@ export default function InventoryPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
                     <p className="text-muted-foreground mt-1">Manage blood units and components.</p>
                 </div>
                 <AddInventoryModal />
@@ -139,38 +139,43 @@ export default function InventoryPage() {
                     {/* Mobile Cards */}
                     <div className="md:hidden grid gap-4">
                         {filteredData.map((item) => (
-                            <Card key={item.id}>
-                                <CardHeader className="pb-2">
+                            <Card key={item.id} className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="pb-2 p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle className="text-base">{item.id}</CardTitle>
-                                            <div className="text-sm text-muted-foreground mt-1">{item.component} • {item.quantity}ml</div>
+                                            <CardTitle className="text-base font-bold">{item.id}</CardTitle>
+                                            <div className="text-sm text-muted-foreground mt-1 truncate max-w-[150px]">{item.component} • {item.quantity}ml</div>
                                         </div>
-                                        <Badge variant="outline" className="font-bold">{item.group}</Badge>
+                                        <Badge variant="outline" className="font-bold shrink-0">{item.group}</Badge>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="text-sm space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Collection:</span>
-                                        <span>{item.collectionDate}</span>
+                                <CardContent className="text-sm space-y-3 p-4 pt-0">
+                                    <div className="grid grid-cols-2 gap-2 text-muted-foreground text-xs uppercase tracking-wide font-semibold mt-2">
+                                        <div>Collection</div>
+                                        <div className="text-right">Expires</div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Expires:</span>
-                                        <span className={new Date(item.expiryDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? "text-amber-600 font-medium" : ""}>
+                                    <div className="grid grid-cols-2 gap-2 font-medium">
+                                        <div>{item.collectionDate}</div>
+                                        <div className={cn("text-right", new Date(item.expiryDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? "text-amber-600" : "")}>
                                             {item.expiryDate}
-                                        </span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-center pt-2">
-                                        <Badge variant={
-                                            item.status === 'Available' ? 'default' :
-                                                item.status === 'Reserved' ? 'secondary' : 'destructive'
-                                        } className={
-                                            item.status === 'Available' ? 'bg-emerald-500 hover:bg-emerald-600' :
-                                                item.status === 'Reserved' ? 'bg-amber-500 hover:bg-amber-600' : ''
-                                        }>
+
+                                    <div className="flex justify-between items-center pt-3 border-t mt-3">
+                                        <Badge
+                                            variant="secondary"
+                                            className={cn(
+                                                "font-medium",
+                                                item.status === 'Available' && "bg-emerald-100 text-emerald-700 hover:bg-emerald-100/80 dark:bg-emerald-500/20 dark:text-emerald-400",
+                                                item.status === 'Reserved' && "bg-amber-100 text-amber-700 hover:bg-amber-100/80 dark:bg-amber-500/20 dark:text-amber-400",
+                                                item.status === 'Discarded' && "bg-red-100 text-red-700 hover:bg-red-100/80 dark:bg-red-500/20 dark:text-red-400"
+                                            )}
+                                        >
                                             {item.status}
                                         </Badge>
-                                        <Button variant="ghost" size="sm" className="-mr-2 h-8">View Details</Button>
+                                        <Button variant="ghost" size="sm" className="h-8 text-xs hover:bg-muted">
+                                            View Details
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

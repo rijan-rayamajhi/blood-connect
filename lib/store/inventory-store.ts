@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 
 export type BloodGroup = "A+" | "A-" | "B+" | "B-" | "O+" | "O-" | "AB+" | "AB-"
 export type ComponentType = "Whole Blood" | "Packed RBC" | "Platelets" | "Plasma" | "Cryoprecipitate"
-export type UnitStatus = "Available" | "Reserved" | "Expired" | "Quarantine"
+export type UnitStatus = "Available" | "Reserved" | "Expired" | "Quarantine" | "Discarded"
 
 export type InventoryItem = {
     id: string

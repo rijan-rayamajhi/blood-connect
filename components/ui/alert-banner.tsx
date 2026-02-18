@@ -41,16 +41,26 @@ export function AlertBanner({ type = "normal", title, description, className, on
                 exit={{ opacity: 0, height: 0 }}
                 className={className}
             >
-                <Alert variant="default" className={cn("bg-background shadow-sm px-4 py-3", styles[type])}>
-                    <Icon className="h-4 w-4" />
-                    <AlertTitle>{title}</AlertTitle>
-                    {description && <AlertDescription>{description}</AlertDescription>}
+                <Alert variant="default" className={cn("bg-background shadow-sm px-4 py-3 w-full h-full flex flex-col items-start gap-2", styles[type])}>
+                    <div className="flex w-full gap-3">
+                        <Icon className="h-5 w-5 shrink-0 mt-0.5" />
+                        <div className="flex-1 space-y-1">
+                            <AlertTitle className="text-base font-semibold leading-none tracking-tight text-foreground/90">
+                                {title}
+                            </AlertTitle>
+                            {description && (
+                                <AlertDescription className="text-sm opacity-90 leading-relaxed text-foreground/80 break-words">
+                                    {description}
+                                </AlertDescription>
+                            )}
+                        </div>
+                    </div>
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="absolute right-4 top-4 hover:opacity-70 transition-opacity"
+                            className="absolute right-3 top-3 hover:opacity-70 transition-opacity p-1"
                         >
-                            <XCircle className="h-4 w-4" />
+                            <XCircle className="h-4 w-4 opacity-50 hover:opacity-100" />
                         </button>
                     )}
                 </Alert>

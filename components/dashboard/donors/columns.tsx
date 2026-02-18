@@ -3,17 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Donor } from "@/lib/store/donor-store"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Phone, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useDonorStore } from "@/lib/store/donor-store"
+import { Phone, Mail } from "lucide-react"
+
 
 import { DonorActions } from "./donor-actions"
 

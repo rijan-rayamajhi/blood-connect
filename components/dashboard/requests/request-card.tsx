@@ -58,8 +58,8 @@ export function RequestCard({ request }: RequestCardProps) {
                     </div>
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-between items-center bg-muted/20 pt-3">
-                <Badge variant={statusColor[request.status]} className="uppercase text-[10px]">
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-muted/20 pt-4 pb-4 gap-4">
+                <Badge variant={statusColor[request.status]} className="uppercase text-[10px] w-fit">
                     {request.status}
                 </Badge>
 

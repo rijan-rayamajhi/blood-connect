@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InventoryItem, BloodGroup } from "@/lib/store/inventory-store"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts"
+
 
 interface InventoryChartsProps {
     items: InventoryItem[]
@@ -24,41 +24,26 @@ export function InventoryCharts({ items }: InventoryChartsProps) {
 
     return (
         <Card className="col-span-full lg:col-span-4">
-            <CardHeader>
-                <CardTitle>Inventory Levels</CardTitle>
+            <CardHeader className="pb-2">
+                <CardTitle>Blood Stock Levels</CardTitle>
             </CardHeader>
-            <CardContent className="pl-2">
-                <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={data}>
-                        <XAxis
-                            dataKey="name"
-                            stroke="#888888"
-                            fontSize={12}
-                            tickLine={false}
-                            axisLine={false}
-                        />
-                        <YAxis
-                            stroke="#888888"
-                            fontSize={12}
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(value) => `${value}`}
-                        />
-                        <Tooltip
-                            cursor={{ fill: 'transparent' }}
-                            contentStyle={{
-                                borderRadius: '8px',
-                                border: 'none',
-                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                            }}
-                        />
-                        <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
+            <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {data.map((item) => (
+                        <div
+                            key={item.name}
+                            className="flex flex-col items-center justify-center p-3 rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow min-h-[100px]"
+                        >
+                            <div className="text-sm font-medium text-muted-foreground">{item.name}</div>
+                            <div className="text-xl sm:text-2xl lg:text-3xl font-bold my-1" style={{ color: item.fill }}>
+                                {item.count}
+                            </div>
+                            <div className="text-xs text-muted-foreground text-center px-1">
+                                {item.count < 5 ? "Critical" : item.count < 15 ? "Low" : "Good"}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )

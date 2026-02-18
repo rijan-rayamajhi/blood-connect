@@ -89,13 +89,13 @@ function BloodBankDashboardContent({ items, isLoading }: { items: InventoryItem[
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1 text-sm sm:text-base">Real-time overview of blood bank operations.</p>
+                    <p className="text-muted-foreground mt-1">Real-time overview of blood bank operations.</p>
                 </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 md:flex-none">
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
                         Download Report
                     </Button>
-                    <Button className="bg-critical hover:bg-critical/90 flex-1 md:flex-none" size="sm">
+                    <Button className="bg-critical hover:bg-critical/90" size="sm">
                         <Siren className="mr-2 h-4 w-4" />
                         Broadcast SOS
                     </Button>

@@ -31,7 +31,7 @@ export function SosWidget({ hospitalName, bloodGroup, units, location, timeElaps
             />
 
             <div className="relative flex flex-col lg:flex-row items-center justify-between gap-4 rounded-lg bg-background/10 backdrop-blur-sm p-6 text-white border border-white/20">
-                <div className="flex items-start gap-4 w-full md:w-auto">
+                <div className="flex items-start gap-4 w-full lg:w-auto">
                     <div className="p-3 bg-white/20 rounded-full shrink-0 animate-pulse">
                         <Siren className="h-8 w-8 text-white" />
                     </div>
@@ -45,7 +45,7 @@ export function SosWidget({ hospitalName, bloodGroup, units, location, timeElaps
                                 Elapsed: {timeElapsed}
                             </span>
                         </div>
-                        <h3 className="text-2xl font-bold leading-tight">
+                        <h3 className="text-xl lg:text-2xl font-bold leading-tight">
                             {hospitalName}
                         </h3>
                         <p className="text-white/90 text-sm">
@@ -54,20 +54,20 @@ export function SosWidget({ hospitalName, bloodGroup, units, location, timeElaps
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center p-4 bg-black/20 rounded-lg w-full md:w-auto min-w-[120px]">
+                <div className="flex flex-col items-center justify-center p-4 bg-black/20 rounded-lg w-full lg:w-auto min-w-[120px]">
                     <span className="text-xs text-white/70 uppercase font-bold tracking-wider mb-1">Required</span>
-                    <div className="text-3xl font-black text-white flex items-center gap-2">
+                    <div className="text-2xl lg:text-3xl font-black text-white flex items-center gap-2">
                         {bloodGroup}
                         <span className="text-lg font-medium opacity-80">({units}u)</span>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center w-full md:w-auto gap-3">
+                <div className="flex flex-col items-center justify-center w-full lg:w-auto gap-3">
                     <div className="text-center">
                         <span className="text-xs text-white/70 font-medium mb-1 block">Auto-Expire In</span>
                         <CountdownTimer targetDate={targetDate} className="text-white font-bold text-lg" showDays={false} />
                     </div>
-                    <Button variant="secondary" className="w-full md:w-auto font-bold shadow-lg hover:scale-105 transition-transform">
+                    <Button variant="secondary" className="w-full lg:w-auto font-bold shadow-lg hover:scale-105 transition-transform">
                         Respond Now
                     </Button>
                 </div>

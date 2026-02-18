@@ -41,7 +41,7 @@ function AlertContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-red-950/90 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-red-950/90 backdrop-blur-sm p-4"
         >
             {/* Pulsing Background Effect */}
             <motion.div
@@ -50,7 +50,7 @@ function AlertContent() {
                 className="absolute inset-0 bg-red-600/20"
             />
 
-            <div className="relative z-10 max-w-2xl w-full mx-4 p-8 bg-background border-4 border-destructive rounded-lg shadow-2xl text-center space-y-8">
+            <div className="relative z-10 max-w-2xl w-full p-8 bg-background border-4 border-destructive rounded-lg shadow-2xl text-center space-y-8">
                 <div className="flex justify-center">
                     <div className="relative">
                         <motion.div
@@ -63,10 +63,10 @@ function AlertContent() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-4xl md:text-5xl font-black text-destructive tracking-tight uppercase">
+                    <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-destructive tracking-tight uppercase">
                         Critical Emergency Alert
                     </h2>
-                    <p className="text-xl md:text-2xl font-bold text-foreground">
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
                         Mass Casualty Event Reported
                     </p>
                     <div className="flex items-center justify-center gap-2 text-muted-foreground text-lg">
@@ -79,7 +79,7 @@ function AlertContent() {
                     <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                         Auto-Dispatch In
                     </span>
-                    <div className="flex items-center gap-3 text-4xl font-mono font-bold text-destructive">
+                    <div className="flex items-center gap-3 text-3xl sm:text-4xl font-mono font-bold text-destructive">
                         <Clock className="h-8 w-8" />
                         {formatTime(timeLeft)}
                     </div>
