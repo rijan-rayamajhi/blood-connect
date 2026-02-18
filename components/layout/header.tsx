@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useEmergencyStore } from "@/lib/store/emergency-store"
 import { Siren } from "lucide-react"
@@ -9,7 +10,11 @@ import { Menu } from "lucide-react"
 import { Sidebar } from "@/components/layout/sidebar"
 
 export function Header() {
+    const pathname = usePathname()
     const triggerAlert = useEmergencyStore((state) => state.triggerAlert)
+
+    const isHospital = pathname?.startsWith("/hospital")
+    const title = isHospital ? "Hospital Portal" : "Blood Bank Portal"
 
     return (
         <header className="h-16 border-b bg-background flex items-center px-6 justify-between">
@@ -25,7 +30,7 @@ export function Header() {
                         <Sidebar className="w-full border-r-0" />
                     </SheetContent>
                 </Sheet>
-                <div className="font-semibold">Dashboard</div>
+                <div className="font-semibold">{title}</div>
             </div>
             <div className="flex items-center gap-4">
                 <Button

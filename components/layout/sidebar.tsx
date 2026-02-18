@@ -3,10 +3,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useCreateRequestStore } from "@/lib/modal-store"
 import { buttonVariants, Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, FileText, Settings, Activity, Users, ShieldCheck, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Package, FileText, Settings, Activity, Users, ShieldCheck, BarChart3, Map, Calendar } from "lucide-react"
 
-const sidebarItems = [
+const bloodBankSidebarItems = [
     {
         title: "Dashboard",
         href: "/blood-bank",
@@ -44,12 +45,54 @@ const sidebarItems = [
     },
 ]
 
+const hospitalSidebarItems = [
+    {
+        title: "Dashboard",
+        href: "/hospital",
+        icon: LayoutDashboard,
+    },
+    {
+        title: "Discovery",
+        href: "/hospital/discovery",
+        icon: Map,
+    },
+    {
+        title: "Create Request",
+        href: "#create-request",
+        icon: FileText, // Using FileText or maybe PlusCircle
+    },
+    {
+        title: "My Requests",
+        href: "/hospital/requests",
+        icon: FileText,
+    },
+    {
+        title: "Pre-Booking",
+        href: "/hospital/pre-booking",
+        icon: Calendar,
+    },
+    {
+        title: "Analytics",
+        href: "/hospital/analytics",
+        icon: BarChart3,
+    },
+    {
+        title: "Settings",
+        href: "/hospital/settings",
+        icon: Settings,
+    },
+]
+
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export function Sidebar({ className, collapsible = false }: { className?: string, collapsible?: boolean }) {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = useState(false)
+    const { onOpen } = useCreateRequestStore()
+
+    const isHospital = pathname?.startsWith("/hospital")
+    const sidebarItems = isHospital ? hospitalSidebarItems : bloodBankSidebarItems
 
     return (
         <div
@@ -77,6 +120,12 @@ export function Sidebar({ className, collapsible = false }: { className?: string
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={(e) => {
+                                if (item.href === "#create-request") {
+                                    e.preventDefault()
+                                    onOpen()
+                                }
+                            }}
                             title={isCollapsed ? item.title : undefined}
                             className={cn(
                                 buttonVariants({ variant: "ghost" }),
@@ -96,7 +145,8 @@ export function Sidebar({ className, collapsible = false }: { className?: string
                                 {item.title}
                             </span>
                         </Link>
-                    ))}
+                    ))
+                    }
                 </nav>
             </div>
 
