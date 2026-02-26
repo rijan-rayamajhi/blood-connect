@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useCreateRequestStore } from "@/lib/modal-store"
 import { buttonVariants, Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, FileText, Settings, Activity, Users, ShieldCheck, BarChart3, Map, Calendar } from "lucide-react"
+import { LayoutDashboard, Package, FileText, Settings, Activity, Users, ShieldCheck, BarChart3, Map, Calendar, User } from "lucide-react"
 
 const bloodBankSidebarItems = [
     {
@@ -37,6 +37,11 @@ const bloodBankSidebarItems = [
         title: "Reports",
         href: "/blood-bank/reports",
         icon: BarChart3,
+    },
+    {
+        title: "Profile",
+        href: "/blood-bank/profile",
+        icon: User,
     },
     {
         title: "Settings",
@@ -75,6 +80,11 @@ const hospitalSidebarItems = [
         title: "Analytics",
         href: "/hospital/analytics",
         icon: BarChart3,
+    },
+    {
+        title: "Profile",
+        href: "/hospital/profile",
+        icon: User,
     },
     {
         title: "Settings",

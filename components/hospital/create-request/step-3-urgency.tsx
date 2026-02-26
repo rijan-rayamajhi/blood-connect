@@ -29,9 +29,9 @@ export function Step3Urgency({ onNext, defaultValues }: Step3Props) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-3">
-                <Label className="text-base">Urgency Level</Label>
+        <form onSubmit={handleSubmit} className="space-y-10 mt-2">
+            <div className="space-y-4">
+                <Label className="text-base font-semibold">Urgency Level</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
                         type="button"
@@ -80,9 +80,9 @@ export function Step3Urgency({ onNext, defaultValues }: Step3Props) {
                 </div>
             </div>
 
-            <div className="space-y-3">
-                <Label className="text-base">Request Type</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+                <Label className="text-base font-semibold">Request Type</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div
                         onClick={() => setRequestType("broadcast")}
                         className={cn(

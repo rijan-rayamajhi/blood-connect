@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 
 export default function HospitalDashboardPage() {
     return (
-        <div className="flex flex-col gap-6 md:gap-8">
+        <div className="flex flex-col gap-6 md:gap-8 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
             {/* 1. Availability Summary */}
             <section className="flex flex-col gap-4">
                 <h2 className="text-xl font-semibold tracking-tight">Availability Summary</h2>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <KpiCard
                         title="Total Nearby Blood Banks"
                         value="12"
@@ -123,7 +123,7 @@ export default function HospitalDashboardPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                     {[
                         {
                             id: "REQ-2024-001",
@@ -155,7 +155,7 @@ export default function HospitalDashboardPage() {
                     ].map((req, i) => (
                         <Card key={i}>
                             <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-start gap-2">
                                     <div>
                                         <CardTitle className="text-base font-bold">{req.bloodGroup}</CardTitle>
                                         <CardDescription>{req.component} • {req.units} Units</CardDescription>
@@ -218,7 +218,7 @@ export default function HospitalDashboardPage() {
                                 </span>
                             </div>
                             <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-start gap-2">
                                     <div>
                                         <CardTitle className="text-lg font-bold text-destructive flex items-center gap-2">
                                             {req.bloodGroup}
@@ -255,7 +255,7 @@ export default function HospitalDashboardPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                     {[
                         {
                             id: "SCH-2024-101",
@@ -287,7 +287,7 @@ export default function HospitalDashboardPage() {
                     ].map((booking, i) => (
                         <Card key={i}>
                             <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-start gap-2">
                                     <div>
                                         <CardTitle className="text-base font-bold">{booking.bloodGroup}</CardTitle>
                                         <CardDescription>{booking.component} • {booking.units} Units</CardDescription>

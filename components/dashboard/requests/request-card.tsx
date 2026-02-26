@@ -6,9 +6,10 @@ import { Calendar, Droplets, Clock } from "lucide-react"
 
 interface RequestCardProps {
     request: BloodRequest
+    isHospitalView?: boolean
 }
 
-export function RequestCard({ request }: RequestCardProps) {
+export function RequestCard({ request, isHospitalView = false }: RequestCardProps) {
     const updateStatus = useRequestStore((state) => state.updateRequestStatus)
 
     const urgencyColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -63,7 +64,7 @@ export function RequestCard({ request }: RequestCardProps) {
                     {request.status}
                 </Badge>
 
-                {request.status === 'Pending' && (
+                {request.status === 'Pending' && !isHospitalView && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="destructive"

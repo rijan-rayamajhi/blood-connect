@@ -7,13 +7,11 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import {
     Select,
     SelectContent,
@@ -45,6 +43,7 @@ interface Step1Props {
 
 export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
     const form = useForm<Step1Data>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(formSchema) as any,
         defaultValues: {
             bloodGroup: defaultValues?.bloodGroup,
@@ -60,8 +59,8 @@ export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <FormField
                         control={form.control}
                         name="bloodGroup"
@@ -70,7 +69,7 @@ export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
                                 <FormLabel>Blood Group</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="h-11">
                                             <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -108,37 +107,6 @@ export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
                         )}
                     />
                 </div>
-
-                <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Quantity (Units)</FormLabel>
-                            <FormControl>
-                                <Input type="number" min={1} {...field} />
-                            </FormControl>
-                            <FormDescription>
-                                Number of bags required.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="requiredDate"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Required By</FormLabel>
-                            <FormControl>
-                                <Input type="datetime-local" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 <Button type="submit" className="hidden" id="step-1-submit">Submit</Button>
             </form>

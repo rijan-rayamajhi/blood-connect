@@ -6,8 +6,9 @@ import { useEmergencyStore } from "@/lib/store/emergency-store"
 import { Siren } from "lucide-react"
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { Menu, User } from "lucide-react"
 import { Sidebar } from "@/components/layout/sidebar"
+import Link from "next/link"
 
 export function Header() {
     const pathname = usePathname()
@@ -43,7 +44,12 @@ export function Header() {
                     <span className="hidden sm:inline">Simulate Emergency</span>
                     <span className="sm:hidden">SOS</span>
                 </Button>
-                <div className="h-8 w-8 rounded-full bg-muted" />
+                <Link href={isHospital ? "/hospital/profile" : "/blood-bank/profile"}>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                        <User className="h-5 w-5" />
+                        <span className="sr-only">Profile</span>
+                    </Button>
+                </Link>
             </div>
         </header>
     )

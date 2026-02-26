@@ -2,16 +2,15 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Droplet, FileText, Siren, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { Step1BloodDetails, Step1Data } from "@/components/hospital/create-request/step-1-blood-details"
 import { Step2Prescription, Step2Data } from "@/components/hospital/create-request/step-2-prescription"
 import { Step3Urgency, Step3Data } from "@/components/hospital/create-request/step-3-urgency"
@@ -137,21 +136,21 @@ export function CreateRequestSheet() {
     }
 
     return (
-        <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-                <SheetHeader className="mb-6">
-                    <SheetTitle>Create Blood Request</SheetTitle>
-                    <SheetDescription>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+            <DialogContent className="max-w-2xl sm:max-w-3xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+                <DialogHeader className="px-6 pt-6 pb-2 border-b bg-muted/30">
+                    <DialogTitle className="text-2xl font-bold">Create Blood Request</DialogTitle>
+                    <DialogDescription>
                         Submit a new request for blood units to nearby blood banks.
-                    </SheetDescription>
-                </SheetHeader>
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div className="space-y-8">
+                <div className="flex-1 overflow-y-auto px-6 py-4 relative">
                     {/* Step Indicator */}
-                    <div className="relative flex items-center justify-between w-full px-2">
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-muted -z-10" />
+                    <div className="relative flex items-center justify-between w-full max-w-lg mx-auto mb-8 px-2">
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-muted -z-10" />
                         <div
-                            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary -z-10 transition-all duration-300"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-primary -z-10 transition-all duration-500 ease-in-out"
                             style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                         />
 
@@ -164,18 +163,18 @@ export function CreateRequestSheet() {
                                 <div key={step.id} className="flex flex-col items-center gap-2 bg-background px-2">
                                     <div
                                         className={cn(
-                                            "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300",
-                                            isActive ? "border-primary bg-primary text-primary-foreground scale-110" :
+                                            "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-500 shadow-sm",
+                                            isActive ? "border-primary bg-primary text-primary-foreground scale-110 shadow-primary/30" :
                                                 isCompleted ? "border-primary bg-primary text-primary-foreground" :
-                                                    "border-muted-foreground/30 text-muted-foreground bg-background"
+                                                    "border-muted text-muted-foreground bg-background"
                                         )}
                                     >
-                                        <Icon className="h-4 w-4" />
+                                        <Icon className="h-5 w-5" />
                                     </div>
                                     <span className={cn(
-                                        "text-[10px] font-medium transition-colors duration-300 absolute mt-9 w-20 text-center",
-                                        isActive ? "text-primary font-bold" :
-                                            isCompleted ? "text-primary" : "text-muted-foreground"
+                                        "text-xs font-semibold transition-all duration-500 absolute mt-12 w-24 text-center",
+                                        isActive ? "text-primary tracking-wide drop-shadow-sm" :
+                                            isCompleted ? "text-foreground" : "text-muted-foreground"
                                     )}>
                                         {step.label}
                                     </span>
@@ -184,41 +183,34 @@ export function CreateRequestSheet() {
                         })}
                     </div>
 
-                    {/* Content Card */}
-                    <Card className="mt-8 border-t-4 border-t-primary shadow-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-lg">
-                                {steps[currentStep - 1].label}
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                Step {currentStep} of {steps.length}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {renderStepContent()}
-                        </CardContent>
-                        <CardFooter className="flex justify-between pt-4">
-                            <Button
-                                variant="outline"
-                                onClick={handleBack}
-                                disabled={currentStep === 1}
-                                className={cn("w-24", currentStep === 1 && "opacity-0")}
-                            >
-                                <ChevronLeft className="mr-2 h-4 w-4" />
-                                Back
-                            </Button>
-
-                            <Button
-                                onClick={handleNextClick}
-                                className="w-24"
-                            >
-                                {currentStep === steps.length ? "Submit" : "Next"}
-                                {currentStep !== steps.length && <ChevronRight className="ml-2 h-4 w-4" />}
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                    {/* Content Area with smooth transition */}
+                    <div className="mt-10 min-h-[350px] animate-in fade-in slide-in-from-right-4 duration-500">
+                        {renderStepContent()}
+                    </div>
                 </div>
-            </SheetContent>
-        </Sheet>
+
+                {/* Sticky Footer */}
+                <div className="border-t bg-muted/10 px-6 py-4 flex items-center justify-between sticky bottom-0 z-10 backdrop-blur-sm">
+                    <Button
+                        variant="ghost"
+                        onClick={handleBack}
+                        disabled={currentStep === 1}
+                        className={cn("w-24 border bg-background/50", currentStep === 1 && "invisible")}
+                    >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+
+                    <Button
+                        onClick={handleNextClick}
+                        className="w-32 shadow-md transition-all hover:scale-[1.02]"
+                        size="lg"
+                    >
+                        {currentStep === steps.length ? "Submit Request" : "Next Step"}
+                        {currentStep !== steps.length && <ChevronRight className="ml-2 h-4 w-4" />}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }

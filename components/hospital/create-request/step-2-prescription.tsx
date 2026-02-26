@@ -61,9 +61,9 @@ export function Step2Prescription({ onNext, defaultValues }: Step2Props) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-                <Label>Upload Prescription / Doctor&apos;s Note (Optional)</Label>
+        <form onSubmit={handleSubmit} className="space-y-8 mt-2">
+            <div className="space-y-3">
+                <Label className="text-base font-semibold">Upload Prescription / Doctor&apos;s Note (Optional)</Label>
                 <div
                     className={cn(
                         "relative border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center transition-colors cursor-pointer",
@@ -112,8 +112,8 @@ export function Step2Prescription({ onNext, defaultValues }: Step2Props) {
                             <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center mb-4">
                                 <UploadCloud className="h-6 w-6 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-1">Click to upload or drag and drop</h3>
-                            <p className="text-sm text-muted-foreground max-w-xs">
+                            <h3 className="text-base font-semibold mb-1">Click to upload or drag and drop</h3>
+                            <p className="text-sm text-muted-foreground/80 max-w-xs">
                                 SVG, PNG, JPG or PDF (max. 5MB)
                             </p>
                         </>
@@ -121,8 +121,8 @@ export function Step2Prescription({ onNext, defaultValues }: Step2Props) {
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="note">Additional Notes</Label>
+            <div className="space-y-3">
+                <Label htmlFor="note" className="text-base font-semibold">Additional Notes</Label>
                 <Textarea
                     id="note"
                     placeholder="Enter any specific requirements or patient details..."

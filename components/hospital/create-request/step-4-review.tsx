@@ -36,9 +36,9 @@ export function Step4Review({ step1, step2, step3, onSubmit }: Step4Props) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8 mt-2">
+            <ScrollArea className="h-[300px] sm:h-[350px] pr-6">
+                <div className="space-y-8 pb-4">
                     {/* Urgency Banner */}
                     <div className={cn(
                         "flex items-center gap-3 p-4 rounded-lg border",
@@ -56,10 +56,10 @@ export function Step4Review({ step1, step2, step3, onSubmit }: Step4Props) {
                     </div>
 
                     {/* Blood Details */}
-                    <Card>
-                        <CardContent className="p-4 space-y-4">
-                            <div className="flex items-center gap-2 font-semibold text-foreground">
-                                <Droplet className="h-4 w-4 text-primary" />
+                    <Card className="shadow-sm border-muted">
+                        <CardContent className="p-5 space-y-4">
+                            <div className="flex items-center gap-2 font-semibold text-lg text-foreground">
+                                <Droplet className="h-5 w-5 text-primary" />
                                 <h3>Blood Requirements</h3>
                             </div>
                             <Separator />
@@ -88,10 +88,10 @@ export function Step4Review({ step1, step2, step3, onSubmit }: Step4Props) {
                     </Card>
 
                     {/* Prescription / Notes */}
-                    <Card>
-                        <CardContent className="p-4 space-y-4">
-                            <div className="flex items-center gap-2 font-semibold text-foreground">
-                                <FileText className="h-4 w-4 text-primary" />
+                    <Card className="shadow-sm border-muted">
+                        <CardContent className="p-5 space-y-4">
+                            <div className="flex items-center gap-2 font-semibold text-lg text-foreground">
+                                <FileText className="h-5 w-5 text-primary" />
                                 <h3>Documentation</h3>
                             </div>
                             <Separator />
@@ -122,22 +122,23 @@ export function Step4Review({ step1, step2, step3, onSubmit }: Step4Props) {
                 </div>
             </ScrollArea>
 
-            <div className="space-y-4 pt-2">
-                <div className="flex items-start gap-2">
+            <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-start gap-3 bg-muted/30 p-4 rounded-lg border">
                     <Checkbox
                         id="confirm"
                         checked={confirmed}
                         onCheckedChange={(c) => setConfirmed(c === true)}
+                        className="mt-1 border-primary"
                     />
                     <div className="grid gap-1.5 leading-none">
                         <Label
                             htmlFor="confirm"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                         >
                             I confirm that the details provided are accurate.
                         </Label>
-                        <p className="text-xs text-muted-foreground">
-                            False requests may lead to suspension of hospital privileges.
+                        <p className="text-[13px] text-muted-foreground leading-snug max-w-md">
+                            False requests may lead to suspension of hospital privileges and account review.
                         </p>
                     </div>
                 </div>
