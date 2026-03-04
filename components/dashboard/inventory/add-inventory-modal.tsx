@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Plus } from "lucide-react"
 import { useInventoryStore } from "@/lib/store/inventory-store"
+import { useMasterDataStore } from "@/lib/store/master-data-store"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,12 +35,11 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] as const
-const COMPONENT_TYPES = ["Whole Blood", "Packed RBC", "Platelets", "Plasma", "Cryoprecipitate"] as const
+// Blood groups and component types are sourced from master-data-store at runtime
 
 const formSchema = z.object({
-    bloodGroup: z.enum(BLOOD_GROUPS),
-    componentType: z.enum(COMPONENT_TYPES),
+    bloodGroup: z.string().min(1, "Please select a blood group."),
+    componentType: z.string().min(1, "Please select a component type."),
     quantity: z.coerce.number().min(1, "Quantity must be at least 1ml."),
     collectionDate: z.string().refine((date) => new Date(date) <= new Date(), {
         message: "Collection date cannot be in the future.",
@@ -54,6 +54,8 @@ type FormValues = z.infer<typeof formSchema>
 
 export function AddInventoryModal() {
     const [open, setOpen] = useState(false)
+    const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
+    const componentTypes = useMasterDataStore((s) => s.componentTypes)
 
     const form = useForm<FormValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,12 +73,11 @@ export function AddInventoryModal() {
 
     function onSubmit(values: FormValues) {
         addItem({
-            group: values.bloodGroup,
-            component: values.componentType,
+            bloodGroup: values.bloodGroup as import("@/lib/store/inventory-store").BloodGroup,
+            componentType: values.componentType as import("@/lib/store/inventory-store").ComponentType,
             quantity: values.quantity,
             collectionDate: values.collectionDate,
-            expiryDate: values.expiryDate,
-            status: "Available"
+            expiryDate: values.expiryDate
         })
         setOpen(false)
         form.reset()
@@ -113,7 +114,7 @@ export function AddInventoryModal() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {BLOOD_GROUPS.map((bg) => (
+                                                {bloodGroups.map((bg) => (
                                                     <SelectItem key={bg} value={bg}>{bg}</SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -135,7 +136,7 @@ export function AddInventoryModal() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {COMPONENT_TYPES.map((c) => (
+                                                {componentTypes.map((c) => (
                                                     <SelectItem key={c} value={c}>{c}</SelectItem>
                                                 ))}
                                             </SelectContent>

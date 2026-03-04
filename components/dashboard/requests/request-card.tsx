@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BloodRequest, useRequestStore } from "@/lib/store/request-store"
 import { Calendar, Droplets, Clock } from "lucide-react"
+import { getStatusBadgeVariant, formatRequestStatus } from "@/lib/utils/request-status-map"
 
 interface RequestCardProps {
     request: BloodRequest
@@ -13,17 +14,9 @@ export function RequestCard({ request, isHospitalView = false }: RequestCardProp
     const updateStatus = useRequestStore((state) => state.updateRequestStatus)
 
     const urgencyColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-        "Critical": "destructive",
-        "Urgent": "default",
-        "Normal": "secondary"
-    }
-
-    const statusColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-        "Pending": "outline",
-        "Accepted": "default",
-        "Rejected": "destructive",
-        "Partial": "secondary",
-        "Completed": "outline"
+        "critical": "destructive",
+        "moderate": "default",
+        "normal": "secondary"
     }
 
     return (
@@ -37,7 +30,7 @@ export function RequestCard({ request, isHospitalView = false }: RequestCardProp
                             Requested: {request.requestDate}
                         </CardDescription>
                     </div>
-                    <Badge variant={urgencyColor[request.urgency]} className={request.urgency === 'Critical' ? 'animate-pulse' : ''}>
+                    <Badge variant={urgencyColor[request.urgency]} className={request.urgency === 'critical' ? 'animate-pulse' : ''}>
                         {request.urgency}
                     </Badge>
                 </div>
@@ -60,27 +53,47 @@ export function RequestCard({ request, isHospitalView = false }: RequestCardProp
                 </div>
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-muted/20 pt-4 pb-4 gap-4">
-                <Badge variant={statusColor[request.status]} className="uppercase text-[10px] w-fit">
-                    {request.status}
+                <Badge variant={getStatusBadgeVariant(request.status)} className="uppercase text-[10px] w-fit">
+                    {formatRequestStatus(request.status)}
                 </Badge>
 
-                {request.status === 'Pending' && !isHospitalView && (
+                {request.status === 'sent' && !isHospitalView && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="destructive"
                             size="sm"
                             className="w-full sm:w-auto"
-                            onClick={() => updateStatus(request.id, 'Rejected')}
+                            onClick={() => updateStatus(request.id, 'rejected')}
                         >
                             Reject
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                            onClick={() => updateStatus(request.id, 'partially-accepted')}
+                        >
+                            Partial
                         </Button>
                         <Button
                             variant="default"
                             size="sm"
                             className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
-                            onClick={() => updateStatus(request.id, 'Accepted')}
+                            onClick={() => updateStatus(request.id, 'accepted')}
                         >
                             Accept
+                        </Button>
+                    </div>
+                )}
+                {request.status === 'accepted' && !isHospitalView && (
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto border-emerald-600 text-emerald-600 hover:bg-emerald-600/10"
+                            onClick={() => updateStatus(request.id, 'collected')}
+                        >
+                            Mark Collected
                         </Button>
                     </div>
                 )}

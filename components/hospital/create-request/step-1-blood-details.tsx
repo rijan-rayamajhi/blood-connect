@@ -1,5 +1,7 @@
 "use client"
 
+import { useMasterDataStore } from "@/lib/store/master-data-store"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -22,8 +24,8 @@ import {
 
 
 const formSchema = z.object({
-    bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
-    componentType: z.enum(["Whole Blood", "PRBC", "Platelets", "Plasma", "Cryo"]),
+    bloodGroup: z.string().min(1, "Please select a blood group."),
+    componentType: z.string().min(1, "Please select a component type."),
     quantity: z.coerce.number().min(1, {
         message: "Quantity must be at least 1 unit.",
     }).max(20, {
@@ -42,6 +44,9 @@ interface Step1Props {
 }
 
 export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
+    const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
+    const componentTypes = useMasterDataStore((s) => s.componentTypes)
+
     const form = useForm<Step1Data>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(formSchema) as any,
@@ -74,7 +79,7 @@ export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
+                                        {bloodGroups.map((bg) => (
                                             <SelectItem key={bg} value={bg}>{bg}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -97,7 +102,7 @@ export function Step1BloodDetails({ onNext, defaultValues }: Step1Props) {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {["Whole Blood", "PRBC", "Platelets", "Plasma", "Cryo"].map((type) => (
+                                        {componentTypes.map((type) => (
                                             <SelectItem key={type} value={type}>{type}</SelectItem>
                                         ))}
                                     </SelectContent>

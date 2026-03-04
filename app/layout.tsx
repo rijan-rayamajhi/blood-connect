@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SystemAnnouncementBanner } from "@/components/system-announcement-banner";
+import { OfflineBanner } from "@/components/system/offline-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +54,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <div className="relative flex min-h-screen flex-col">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:outline-none"
+            >
+              Skip to main content
+            </a>
+            <OfflineBanner />
+            <SystemAnnouncementBanner />
+            {children}
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>

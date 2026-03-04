@@ -1,5 +1,7 @@
 "use client"
 
+import { useMasterDataStore } from "@/lib/store/master-data-store"
+
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -48,6 +50,8 @@ interface CreatePreBookingModalProps {
 }
 
 export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePreBookingModalProps) {
+    const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
+    const componentTypes = useMasterDataStore((s) => s.componentTypes)
     // Initialize form
     const form = useForm<PreBookingFormValues>({
         resolver: zodResolver(preBookingSchema),
@@ -101,7 +105,7 @@ export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePr
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
+                                                {bloodGroups.map((bg) => (
                                                     <SelectItem key={bg} value={bg}>
                                                         {bg}
                                                     </SelectItem>
@@ -127,7 +131,7 @@ export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePr
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {["Whole Blood", "Packed RBC", "Platelets", "Plasma", "Cryoprecipitate", "Granulocytes"].map((type) => (
+                                                {componentTypes.map((type) => (
                                                     <SelectItem key={type} value={type}>
                                                         {type}
                                                     </SelectItem>

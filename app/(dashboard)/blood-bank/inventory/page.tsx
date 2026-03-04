@@ -32,7 +32,7 @@ export default function InventoryPage() {
     // Simple filter logic for demonstration (DataTable handles most, but for external filters)
     const filteredData = items.filter(item =>
         item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.component.toLowerCase().includes(searchTerm.toLowerCase())
+        item.componentType.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     if (isLoading) {
@@ -144,9 +144,9 @@ export default function InventoryPage() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="text-base font-bold">{item.id}</CardTitle>
-                                            <div className="text-sm text-muted-foreground mt-1 truncate max-w-[150px]">{item.component} • {item.quantity}ml</div>
+                                            <div className="text-sm text-muted-foreground mt-1 truncate max-w-[150px]">{item.componentType} • {item.quantity}ml</div>
                                         </div>
-                                        <Badge variant="outline" className="font-bold shrink-0">{item.group}</Badge>
+                                        <Badge variant="outline" className="font-bold shrink-0">{item.bloodGroup}</Badge>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 p-4 pt-0">
@@ -166,9 +166,9 @@ export default function InventoryPage() {
                                             variant="secondary"
                                             className={cn(
                                                 "font-medium",
-                                                item.status === 'Available' && "bg-emerald-100 text-emerald-700 hover:bg-emerald-100/80 dark:bg-emerald-500/20 dark:text-emerald-400",
-                                                item.status === 'Reserved' && "bg-amber-100 text-amber-700 hover:bg-amber-100/80 dark:bg-amber-500/20 dark:text-amber-400",
-                                                item.status === 'Discarded' && "bg-red-100 text-red-700 hover:bg-red-100/80 dark:bg-red-500/20 dark:text-red-400"
+                                                item.status === 'available' && "bg-emerald-100 text-emerald-700 hover:bg-emerald-100/80 dark:bg-emerald-500/20 dark:text-emerald-400",
+                                                item.status === 'reserved' && "bg-amber-100 text-amber-700 hover:bg-amber-100/80 dark:bg-amber-500/20 dark:text-amber-400",
+                                                item.status === 'expired' && "bg-red-100 text-red-700 hover:bg-red-100/80 dark:bg-red-500/20 dark:text-red-400"
                                             )}
                                         >
                                             {item.status}

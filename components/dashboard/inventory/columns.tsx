@@ -13,26 +13,45 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { useState } from "react"
-import { InventoryItem } from "@/lib/store/inventory-store"
+import { useState, useMemo } from "react"
+import { InventoryItem, useInventoryStore } from "@/lib/store/inventory-store"
+import { getInventoryBadgeVariant, getInventoryBadgeClass } from "@/lib/utils/inventory-status-map"
+import { getRecommendedFIFOUnit } from "@/lib/utils/fifo-hook"
 
 export const columns: ColumnDef<InventoryItem>[] = [
     {
         accessorKey: "id",
         header: "Unit ID",
-        cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+        cell: ({ row, table }) => {
+            const id = row.getValue("id") as string
+            const items = table.options.data as InventoryItem[]
+            const status = row.original.status
+            const recommendedId = getRecommendedFIFOUnit(items)
+            const isRecommended = id === recommendedId && status !== "expired"
+
+            return (
+                <div className={`flex items-center gap-2 ${status === "expired" ? "opacity-50" : ""}`}>
+                    <span className="font-medium">{id}</span>
+                    {isRecommended && (
+                        <Badge variant="outline" className="text-[10px] h-5 border-amber-500 text-amber-600 bg-amber-50">
+                            FIFO Recommended
+                        </Badge>
+                    )}
+                </div>
+            )
+        },
     },
     {
-        accessorKey: "group",
+        accessorKey: "bloodGroup",
         header: "Blood Group",
         cell: ({ row }) => (
             <Badge variant="outline" className="font-bold">
-                {row.getValue("group")}
+                {row.getValue("bloodGroup")}
             </Badge>
         ),
     },
     {
-        accessorKey: "component",
+        accessorKey: "componentType",
         header: "Component",
     },
     {
@@ -60,7 +79,8 @@ export const columns: ColumnDef<InventoryItem>[] = [
         header: "Expiry Date",
         cell: ({ row }) => {
             const date = row.getValue("expiryDate") as string
-            const isNearExpiry = new Date(date) < new Date(new Date().setDate(new Date().getDate() + 7))
+            const status = row.original.status
+            const isNearExpiry = status === "near-expiry"
             return (
                 <div className={isNearExpiry ? "text-amber-600 font-medium" : ""}>
                     {date}
@@ -72,20 +92,20 @@ export const columns: ColumnDef<InventoryItem>[] = [
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") as string
+            const status = row.original.status
+            const reservedFor = row.original.reservedForRequestId
+
             return (
-                <Badge
-                    variant={
-                        status === 'Available' ? 'default' :
-                            status === 'Reserved' ? 'secondary' : 'destructive'
-                    }
-                    className={
-                        status === 'Available' ? 'bg-emerald-500 hover:bg-emerald-600' :
-                            status === 'Reserved' ? 'bg-amber-500 hover:bg-amber-600' : ''
-                    }
-                >
-                    {status}
-                </Badge>
+                <div className={`flex flex-col gap-1 items-start ${status === "expired" ? "opacity-50" : ""}`}>
+                    <Badge variant={getInventoryBadgeVariant(status)} className={`uppercase text-[10px] ${getInventoryBadgeClass(status)}`}>
+                        {status.replace('-', ' ')}
+                    </Badge>
+                    {status === "reserved" && reservedFor && (
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            For: {reservedFor}
+                        </span>
+                    )}
+                </div>
             )
         },
     },
@@ -101,9 +121,8 @@ export const columns: ColumnDef<InventoryItem>[] = [
     },
 ]
 
-import { useInventoryStore } from "@/lib/store/inventory-store"
 import { toast } from "sonner"
-import { Trash2, Edit, Eye, Copy } from "lucide-react"
+import { Trash2, Edit, Eye, Copy, Ban } from "lucide-react"
 
 function ActionCell({ item }: { item: InventoryItem }) {
     const deleteItem = useInventoryStore((state) => state.deleteItem)

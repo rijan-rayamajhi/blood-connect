@@ -14,7 +14,7 @@ export function InventoryCharts({ items }: InventoryChartsProps) {
     // Transform inventory items into chart data
     // Counts available units per blood group and assigns color based on stock level
     const data = bloodGroups.map(group => {
-        const count = items.filter(i => i.group === group && i.status === "Available").length
+        const count = items.filter(i => i.bloodGroup === group && i.status === "available").length
         return {
             name: group,
             count: count,

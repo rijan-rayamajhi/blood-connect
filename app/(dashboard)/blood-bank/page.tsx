@@ -26,6 +26,7 @@ const InventoryCharts = dynamic(() => import("@/components/dashboard/inventory-c
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 
 import { useInventoryStore, InventoryItem } from "@/lib/store/inventory-store"
+import { useSystemConfigStore } from "@/lib/store/system-config-store"
 
 export default function BloodBankPage() {
     const { items, isLoading } = useInventoryStore()
@@ -36,15 +37,19 @@ export default function BloodBankPage() {
 }
 
 function BloodBankDashboardContent({ items, isLoading }: { items: InventoryItem[], isLoading: boolean }) {
+    const { config } = useSystemConfigStore()
+
     // Calculate KPIs
     const totalUnits = items.length
-    const lowStockThreshold = 10
+    const lowStockThreshold = config.lowStockThreshold
     const lowStockCount = Object.values(items.reduce((acc, item) => {
-        acc[item.group] = (acc[item.group] || 0) + 1
+        if (item.status === 'available' || item.status === 'near-expiry') {
+            acc[item.bloodGroup] = (acc[item.bloodGroup] || 0) + item.quantity
+        }
         return acc
     }, {} as Record<string, number>)).filter(count => count < lowStockThreshold).length
-
-    const expiredCount = items.filter(item => new Date(item.expiryDate) < new Date()).length
+    const _now = new Date().getTime()
+    const expiredCount = items.filter(item => new Date(item.expiryDate).getTime() < _now).length
 
     const kpis = [
         {

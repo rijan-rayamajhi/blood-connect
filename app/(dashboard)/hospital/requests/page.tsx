@@ -9,14 +9,14 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { CardListSkeleton } from "@/components/ui/skeletons"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RequestStatus, UrgencyLevel } from "@/lib/store/request-store"
+import { RequestStatus, RequestUrgency } from "@/types/request"
 
 export default function HospitalRequestsPage() {
     const { requests, isLoading } = useRequestStore()
     const [currentPage, setCurrentPage] = useState(1)
     const [searchTerm, setSearchTerm] = useState("")
     const [filterStatus, setFilterStatus] = useState<RequestStatus | "All">("All")
-    const [filterUrgency, setFilterUrgency] = useState<UrgencyLevel | "All">("All")
+    const [filterUrgency, setFilterUrgency] = useState<RequestUrgency | "All">("All")
 
     const itemsPerPage = 6
 
@@ -34,7 +34,7 @@ export default function HospitalRequestsPage() {
 
     // Sort by urgency (Critical first) and then required date
     const sortedRequests = [...filteredRequests].sort((a, b) => {
-        const urgencyOrder = { "Critical": 0, "Urgent": 1, "Normal": 2 }
+        const urgencyOrder: Record<string, number> = { "critical": 0, "moderate": 1, "normal": 2 }
         if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
             return urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
         }
@@ -101,16 +101,16 @@ export default function HospitalRequestsPage() {
 
                 <Select
                     value={filterUrgency}
-                    onValueChange={(value) => setFilterUrgency(value as UrgencyLevel | "All")}
+                    onValueChange={(value) => setFilterUrgency(value as RequestUrgency | "All")}
                 >
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Urgency" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="All">All Urgencies</SelectItem>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                        <SelectItem value="Urgent">Urgent</SelectItem>
-                        <SelectItem value="Normal">Normal</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="moderate">Moderate</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

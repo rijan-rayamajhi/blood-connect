@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,21 +11,25 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useDiscoveryStore } from "@/lib/store/discovery-store"
+import { useShallow } from "zustand/react/shallow"
 
 export function DiscoveryFilters() {
-    const [distance, setDistance] = useState("10")
-    const [bloodGroup, setBloodGroup] = useState("")
-    const [quantity, setQuantity] = useState("")
-    const [responseTime, setResponseTime] = useState("")
+    const {
+        radiusKm, bloodGroup, quantity, maxResponseTime,
+        setFilters, resetFilters
+    } = useDiscoveryStore(
+        useShallow(state => ({
+            radiusKm: state.radiusKm,
+            bloodGroup: state.bloodGroup,
+            quantity: state.quantity,
+            maxResponseTime: state.maxResponseTime,
+            setFilters: state.setFilters,
+            resetFilters: state.resetFilters
+        }))
+    )
 
-    const clearFilters = () => {
-        setDistance("10")
-        setBloodGroup("")
-        setQuantity("")
-        setResponseTime("")
-    }
-
-    const hasActiveFilters = distance !== "10" || bloodGroup || quantity || responseTime
+    const hasActiveFilters = radiusKm !== 10 || bloodGroup !== null || quantity !== null || maxResponseTime !== null
 
     return (
         <div className="bg-card border rounded-lg p-4 shadow-sm">
@@ -34,7 +37,10 @@ export function DiscoveryFilters() {
                 {/* 1. Distance Filter */}
                 <div className="space-y-2">
                     <Label htmlFor="distance" className="text-sm font-medium">Distance</Label>
-                    <Select value={distance} onValueChange={setDistance}>
+                    <Select
+                        value={radiusKm.toString()}
+                        onValueChange={(val) => setFilters({ radiusKm: parseInt(val) })}
+                    >
                         <SelectTrigger id="distance">
                             <SelectValue placeholder="Select distance" />
                         </SelectTrigger>
@@ -50,7 +56,10 @@ export function DiscoveryFilters() {
                 {/* 2. Blood Group Filter */}
                 <div className="space-y-2">
                     <Label htmlFor="blood-group" className="text-sm font-medium">Blood Group</Label>
-                    <Select value={bloodGroup} onValueChange={setBloodGroup}>
+                    <Select
+                        value={bloodGroup || "all"}
+                        onValueChange={(val) => setFilters({ bloodGroup: val === "all" ? null : val })}
+                    >
                         <SelectTrigger id="blood-group">
                             <SelectValue placeholder="Any Group" />
                         </SelectTrigger>
@@ -76,15 +85,18 @@ export function DiscoveryFilters() {
                         type="number"
                         placeholder="e.g. 2"
                         min={1}
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
+                        value={quantity || ""}
+                        onChange={(e) => setFilters({ quantity: e.target.value ? parseInt(e.target.value) : null })}
                     />
                 </div>
 
                 {/* 4. Response Time Filter */}
                 <div className="space-y-2">
                     <Label htmlFor="response-time" className="text-sm font-medium">Response Time</Label>
-                    <Select value={responseTime} onValueChange={setResponseTime}>
+                    <Select
+                        value={maxResponseTime?.toString() || "immediate"}
+                        onValueChange={(val) => setFilters({ maxResponseTime: val === "immediate" ? null : parseInt(val) })}
+                    >
                         <SelectTrigger id="response-time">
                             <SelectValue placeholder="Any Time" />
                         </SelectTrigger>
@@ -99,13 +111,10 @@ export function DiscoveryFilters() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                    <Button className="flex-1">
-                        <Search className="mr-2 h-4 w-4" />
-                        Search
-                    </Button>
                     {hasActiveFilters && (
-                        <Button variant="outline" size="icon" onClick={clearFilters} title="Clear Filters">
-                            <X className="h-4 w-4" />
+                        <Button variant="outline" className="w-full text-muted-foreground hover:text-foreground" onClick={resetFilters} title="Clear Filters">
+                            <X className="mr-2 h-4 w-4" />
+                            Clear Filters
                         </Button>
                     )}
                 </div>

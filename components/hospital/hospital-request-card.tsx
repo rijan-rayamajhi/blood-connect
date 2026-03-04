@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { BloodRequest } from "@/lib/store/request-store"
 import { Calendar, Droplets, Clock, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatRequestStatus, getStatusBadgeVariant } from "@/lib/utils/request-status-map"
 
 interface HospitalRequestCardProps {
     request: BloodRequest
@@ -12,17 +13,9 @@ interface HospitalRequestCardProps {
 
 export function HospitalRequestCard({ request, onViewTracking }: HospitalRequestCardProps) {
     const urgencyColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-        "Critical": "destructive",
-        "Urgent": "default",
-        "Normal": "secondary"
-    }
-
-    const statusColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-        "Pending": "outline",
-        "Accepted": "default",
-        "Rejected": "destructive",
-        "Partial": "secondary",
-        "Completed": "default"
+        "critical": "destructive",
+        "moderate": "default",
+        "normal": "secondary"
     }
 
     return (
@@ -40,11 +33,11 @@ export function HospitalRequestCard({ request, onViewTracking }: HospitalRequest
                             </div>
 
                             <div className="sm:hidden flex gap-2">
-                                <Badge variant={urgencyColor[request.urgency]} className={cn(request.urgency === 'Critical' && 'animate-pulse')}>
+                                <Badge variant={urgencyColor[request.urgency]} className={cn(request.urgency === 'critical' && 'animate-pulse')}>
                                     {request.urgency}
                                 </Badge>
-                                <Badge variant={statusColor[request.status]} className="uppercase text-[10px]">
-                                    {request.status}
+                                <Badge variant={getStatusBadgeVariant(request.status)} className="uppercase text-[10px]">
+                                    {formatRequestStatus(request.status)}
                                 </Badge>
                             </div>
                         </div>
@@ -58,10 +51,10 @@ export function HospitalRequestCard({ request, onViewTracking }: HospitalRequest
                     </div>
 
                     <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-                        <Badge variant={statusColor[request.status]} className="uppercase text-[10px]">
-                            {request.status}
+                        <Badge variant={getStatusBadgeVariant(request.status)} className="uppercase text-[10px]">
+                            {formatRequestStatus(request.status)}
                         </Badge>
-                        <Badge variant={urgencyColor[request.urgency]} className={cn(request.urgency === 'Critical' && 'animate-pulse')}>
+                        <Badge variant={urgencyColor[request.urgency]} className={cn(request.urgency === 'critical' && 'animate-pulse')}>
                             {request.urgency}
                         </Badge>
                     </div>

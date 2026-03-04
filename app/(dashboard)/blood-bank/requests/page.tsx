@@ -23,7 +23,7 @@ export default function RequestsPage() {
 
     // Sort by urgency (Critical first) and then date
     const sortedRequests = [...filteredRequests].sort((a, b) => {
-        const urgencyOrder = { "Critical": 0, "Urgent": 1, "Normal": 2 }
+        const urgencyOrder: Record<string, number> = { "critical": 0, "moderate": 1, "normal": 2 }
         if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
             return urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
         }

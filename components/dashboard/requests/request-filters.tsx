@@ -7,7 +7,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useRequestStore, RequestStatus, UrgencyLevel } from "@/lib/store/request-store"
+import { useRequestStore } from "@/lib/store/request-store"
+import { RequestStatus, RequestUrgency } from "@/types/request"
 
 export function RequestFilters() {
     const { filterStatus, filterUrgency, setFilterStatus, setFilterUrgency } = useRequestStore()
@@ -32,16 +33,16 @@ export function RequestFilters() {
 
             <Select
                 value={filterUrgency}
-                onValueChange={(value) => setFilterUrgency(value as UrgencyLevel | "All")}
+                onValueChange={(value) => setFilterUrgency(value as RequestUrgency | "All")}
             >
                 <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by Urgency" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="All">All Urgencies</SelectItem>
-                    <SelectItem value="Critical">Critical</SelectItem>
-                    <SelectItem value="Urgent">Urgent</SelectItem>
-                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
                 </SelectContent>
             </Select>
         </div>
