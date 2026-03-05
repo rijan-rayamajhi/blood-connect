@@ -82,7 +82,7 @@ export const useAdminRegistrationStore = create<AdminRegistrationState>()(
                 // Governance rule: trigger logout if matching ID
                 const authState = useAuthStore.getState()
                 if (authState.user?.id === id) {
-                    authState.logout()
+                    authState.logoutSupabase()
                 }
 
                 useAuditStore.getState().addAuditEvent({
@@ -101,7 +101,7 @@ export const useAdminRegistrationStore = create<AdminRegistrationState>()(
 
                 const authState = useAuthStore.getState()
                 if (authState.user?.id === orgId) {
-                    authState.logout()
+                    authState.logoutSupabase()
                 }
 
                 useAuditStore.getState().addAuditEvent({

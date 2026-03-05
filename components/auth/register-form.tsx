@@ -5,7 +5,9 @@ import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Loader2, Mail, Lock, Building2, UserCircle } from "lucide-react"
+import { Loader2, Mail, Lock, Building2, UserCircle, CheckCircle2 } from "lucide-react"
+import { useAuthStore } from "@/lib/store/auth-store"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -37,7 +39,7 @@ const formSchema = z.object({
     orgName: z.string().min(2, {
         message: "Organization name must be at least 2 characters.",
     }),
-    role: z.enum(["hospital", "blood_bank"]),
+    role: z.enum(["hospital", "blood-bank"]),
     email: z.string().email({
         message: "Please enter a valid email address.",
     }),
@@ -52,6 +54,8 @@ const formSchema = z.object({
 
 export function RegisterForm() {
     const [isLoading, setIsLoading] = React.useState(false)
+    const [isSuccess, setIsSuccess] = React.useState(false)
+    const signUp = useAuthStore(state => state.signUp)
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -66,11 +70,45 @@ export function RegisterForm() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
-        // Simulate API call
-        setTimeout(() => {
-            console.log(values)
+
+        const result = await signUp(
+            values.email,
+            values.password,
+            values.orgName,
+            values.role
+        )
+
+        if (!result.success) {
+            toast.error(result.error || "Registration failed. Please try again.")
             setIsLoading(false)
-        }, 2000)
+            return
+        }
+
+        setIsSuccess(true)
+        toast.success("Registration submitted successfully!")
+        setIsLoading(false)
+    }
+
+    if (isSuccess) {
+        return (
+            <Card className="w-full max-w-md shadow-lg border-muted/40">
+                <CardContent className="pt-8 pb-8 text-center space-y-4">
+                    <div className="flex justify-center">
+                        <CheckCircle2 className="h-16 w-16 text-green-500" />
+                    </div>
+                    <h2 className="text-xl font-bold">Registration Submitted</h2>
+                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                        Your organization registration is pending admin approval.
+                        You will be able to log in once your account has been verified.
+                    </p>
+                    <Link href="/login">
+                        <Button variant="outline" className="mt-4">
+                            Back to Login
+                        </Button>
+                    </Link>
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
@@ -116,7 +154,7 @@ export function RegisterForm() {
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="hospital">Hospital</SelectItem>
-                                            <SelectItem value="blood_bank">Blood Bank</SelectItem>
+                                            <SelectItem value="blood-bank">Blood Bank</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

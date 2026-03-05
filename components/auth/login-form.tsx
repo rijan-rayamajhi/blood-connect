@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2, Mail, Lock } from "lucide-react"
 import { useAuthStore } from "@/lib/store/auth-store"
-import { useAdminRegistrationStore } from "@/lib/store/admin-registration-store"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -46,7 +45,7 @@ const formSchema = z.object({
 export function LoginForm() {
     const [isLoading, setIsLoading] = React.useState(false)
     const router = useRouter()
-    const { login, isLocked, lockUntil, incrementFailedAttempt, resetFailedAttempts, checkLockAndSession } = useAuthStore()
+    const { loginWithPassword, isLocked, lockUntil, checkLockStatus } = useAuthStore()
     const [timeLeft, setTimeLeft] = React.useState(0)
 
     React.useEffect(() => {
@@ -55,7 +54,7 @@ export function LoginForm() {
             interval = setInterval(() => {
                 const now = Date.now()
                 if (now >= lockUntil) {
-                    checkLockAndSession()
+                    checkLockStatus()
                     setTimeLeft(0)
                 } else {
                     setTimeLeft(Math.ceil((lockUntil - now) / 1000))
@@ -63,7 +62,7 @@ export function LoginForm() {
             }, 1000)
         }
         return () => clearInterval(interval)
-    }, [isLocked, lockUntil, checkLockAndSession])
+    }, [isLocked, lockUntil, checkLockStatus])
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60)
@@ -85,68 +84,30 @@ export function LoginForm() {
 
         setIsLoading(true)
 
-        // Simulate API call
-        setTimeout(() => {
-            if (values.password !== "Password@123") {
-                incrementFailedAttempt()
-                toast.error("Invalid credentials.")
-                setIsLoading(false)
-                return
-            }
+        const result = await loginWithPassword(values.email, values.password)
 
-            // Mock user determination logic based on domain
-            let role: "admin" | "hospital" | "blood-bank"
-            if (values.email.endsWith("@hospital.com")) role = "hospital"
-            else if (values.email.endsWith("@bloodbank.com")) role = "blood-bank"
-            else if (values.email.endsWith("@admin.com")) role = "admin"
-            else {
-                toast.error("Invalid domain for organizational login.")
-                setIsLoading(false)
-                return
-            }
-
-            // Governance Rules (DRD 5.2): Check registration status for non-admins
-            if (role !== "admin") {
-                const registrations = useAdminRegistrationStore.getState().registrations
-                const org = registrations.find(r => r.email === values.email)
-
-                if (!org || org.status === "pending") {
-                    toast.error("Your registration is pending approval. Please wait for the administrator to verify your account.")
-                    setIsLoading(false)
-                    return
-                }
-
-                if (org.status === "rejected") {
-                    toast.error(`Your registration was rejected. Reason: ${org.reviewRemarks || "Not specified"}`)
-                    setIsLoading(false)
-                    return
-                }
-
-                if (org.status === "suspended") {
-                    toast.error("Your account has been suspended. Please contact the administrator.")
-                    setIsLoading(false)
-                    return
-                }
-            }
-
-            const registrationsAtLogin = useAdminRegistrationStore.getState().registrations
-            const mockUser = {
-                id: role === "admin" ? "admin" : (registrationsAtLogin.find(r => r.email === values.email)?.id || "1"),
-                name: role === "admin" ? "System Admin" : "Organization User",
-                email: values.email,
-                role: role
-            }
-
-            resetFailedAttempts()
-            login(mockUser)
-
-            // Redirect based on role
-            if (role === 'admin') router.push('/admin')
-            else if (role === 'hospital') router.push('/hospital')
-            else if (role === 'blood-bank') router.push('/blood-bank')
-
+        if (!result.success) {
+            toast.error(result.error || "Invalid credentials.")
             setIsLoading(false)
-        }, 1000)
+            return
+        }
+
+        // Get user from store after successful login
+        const user = useAuthStore.getState().user
+        if (!user) {
+            toast.error("Login failed. Please try again.")
+            setIsLoading(false)
+            return
+        }
+
+        toast.success("Login successful!")
+
+        // Redirect based on role
+        if (user.role === 'admin') router.push('/admin')
+        else if (user.role === 'hospital') router.push('/hospital')
+        else if (user.role === 'blood-bank') router.push('/blood-bank')
+
+        setIsLoading(false)
     }
 
     return (
