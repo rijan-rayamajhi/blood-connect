@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2, Lock, ShieldAlert, CheckCircle2, Clock } from "lucide-react"
@@ -126,7 +126,12 @@ function ResetPasswordContent() {
         },
     })
 
-    function onSubmit(_values: PasswordFormValues) {
+    const currentPassword = useWatch({
+        control: form.control,
+        name: "newPassword",
+    }) || ""
+
+    function onSubmit() {
         if (tokenStatus !== "valid") return
 
         setIsLoading(true)
@@ -268,25 +273,23 @@ function ResetPasswordContent() {
                         {/* Password requirements hint */}
                         <ul className="space-y-1 text-xs text-muted-foreground" aria-label="Password requirements">
                             <PasswordRule
-                                met={form.watch("newPassword").length >= 8}
+                                met={currentPassword.length >= 8}
                                 label="At least 8 characters"
                             />
                             <PasswordRule
-                                met={/[A-Z]/.test(form.watch("newPassword"))}
+                                met={/[A-Z]/.test(currentPassword)}
                                 label="1 uppercase letter"
                             />
                             <PasswordRule
-                                met={/[a-z]/.test(form.watch("newPassword"))}
+                                met={/[a-z]/.test(currentPassword)}
                                 label="1 lowercase letter"
                             />
                             <PasswordRule
-                                met={/[0-9]/.test(form.watch("newPassword"))}
+                                met={/[0-9]/.test(currentPassword)}
                                 label="1 number"
                             />
                             <PasswordRule
-                                met={/[^A-Za-z0-9]/.test(
-                                    form.watch("newPassword")
-                                )}
+                                met={/[^A-Za-z0-9]/.test(currentPassword)}
                                 label="1 special character"
                             />
                         </ul>
@@ -323,8 +326,8 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
         <li className="flex items-center gap-1.5">
             <CheckCircle2
                 className={`h-3.5 w-3.5 shrink-0 transition-colors ${met
-                        ? "text-green-500"
-                        : "text-muted-foreground/40"
+                    ? "text-green-500"
+                    : "text-muted-foreground/40"
                     }`}
             />
             <span className={met ? "text-foreground" : ""}>{label}</span>

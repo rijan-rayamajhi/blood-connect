@@ -3,10 +3,49 @@ export type UserRole = 'admin' | 'hospital' | 'blood-bank'
 export type OrgType = 'hospital' | 'blood-bank'
 export type OrgStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
 export type AnnouncementPriority = 'normal' | 'moderate' | 'critical'
+export type InventoryStatusDB = 'available' | 'reserved' | 'expired' | 'near-expiry'
 
 export interface Database {
   public: {
     Tables: {
+      inventory: {
+        Row: {
+          id: string
+          organization_id: string
+          blood_group: string
+          component_type: string
+          quantity: number
+          collection_date: string
+          expiry_date: string
+          status: InventoryStatusDB
+          reserved_for_request_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          blood_group: string
+          component_type: string
+          quantity: number
+          collection_date: string
+          expiry_date: string
+          status?: InventoryStatusDB
+          reserved_for_request_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          organization_id?: string
+          blood_group?: string
+          component_type?: string
+          quantity?: number
+          collection_date?: string
+          expiry_date?: string
+          status?: InventoryStatusDB
+          reserved_for_request_id?: string | null
+        }
+      }
       organizations: {
         Row: {
           id: string
@@ -175,6 +214,21 @@ export interface Database {
             autoDismissSeconds: number | null
           }>
         }
+      }
+    }
+    Functions: {
+      reserve_inventory_unit: {
+        Args: {
+          p_unit_id: string
+          p_request_id: string
+        }
+        Returns: { success: boolean; error?: string }
+      }
+      release_inventory_unit: {
+        Args: {
+          p_unit_id: string
+        }
+        Returns: { success: boolean; error?: string }
       }
     }
   }

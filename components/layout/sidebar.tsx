@@ -96,13 +96,46 @@ const hospitalSidebarItems = [
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
+const adminSidebarItems = [
+    {
+        title: "Dashboard",
+        href: "/admin",
+        icon: LayoutDashboard,
+    },
+    {
+        title: "Verification",
+        href: "/admin/verification",
+        icon: ShieldCheck,
+    },
+    {
+        title: "Master Data",
+        href: "/admin/master-data",
+        icon: FileText,
+    },
+    {
+        title: "Audit Logs",
+        href: "/admin/audit-logs",
+        icon: Activity,
+    },
+    {
+        title: "Configuration",
+        href: "/admin/configuration",
+        icon: Settings,
+    },
+]
+
 export function Sidebar({ className, collapsible = false }: { className?: string, collapsible?: boolean }) {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = useState(false)
     const { onOpen } = useCreateRequestStore()
 
+    const isAdmin = pathname?.startsWith("/admin")
     const isHospital = pathname?.startsWith("/hospital")
-    const sidebarItems = isHospital ? hospitalSidebarItems : bloodBankSidebarItems
+    const sidebarItems = isAdmin 
+        ? adminSidebarItems 
+        : isHospital 
+            ? hospitalSidebarItems 
+            : bloodBankSidebarItems
 
     return (
         <div

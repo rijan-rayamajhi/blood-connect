@@ -208,7 +208,7 @@ export function AdminMonitoringClient() {
             } else {
                 toast.error(result.error || "Failed to suspend organization")
             }
-        } catch (e) {
+        } catch {
             toast.error("An error occurred while suspending organization")
         } finally {
             setSuspendModalOrgId(null)

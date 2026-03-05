@@ -7,6 +7,7 @@ import * as z from "zod"
 import { Plus } from "lucide-react"
 import { useInventoryStore } from "@/lib/store/inventory-store"
 import { useMasterDataStore } from "@/lib/store/master-data-store"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -54,6 +55,7 @@ type FormValues = z.infer<typeof formSchema>
 
 export function AddInventoryModal() {
     const [open, setOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
     const componentTypes = useMasterDataStore((s) => s.componentTypes)
 
@@ -71,16 +73,24 @@ export function AddInventoryModal() {
 
     const addItem = useInventoryStore((state) => state.addItem)
 
-    function onSubmit(values: FormValues) {
-        addItem({
-            bloodGroup: values.bloodGroup as import("@/lib/store/inventory-store").BloodGroup,
-            componentType: values.componentType as import("@/lib/store/inventory-store").ComponentType,
-            quantity: values.quantity,
-            collectionDate: values.collectionDate,
-            expiryDate: values.expiryDate
-        })
-        setOpen(false)
-        form.reset()
+    async function onSubmit(values: FormValues) {
+        setIsSubmitting(true)
+        try {
+            await addItem({
+                bloodGroup: values.bloodGroup as import("@/lib/store/inventory-store").BloodGroup,
+                componentType: values.componentType as import("@/lib/store/inventory-store").ComponentType,
+                quantity: values.quantity,
+                collectionDate: values.collectionDate,
+                expiryDate: values.expiryDate
+            })
+            toast.success("Inventory unit added successfully")
+            setOpen(false)
+            form.reset()
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to add inventory item")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -191,7 +201,9 @@ export function AddInventoryModal() {
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit">Save Unit</Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? "Saving..." : "Save Unit"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>

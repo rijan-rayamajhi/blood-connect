@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bell, BellOff, Check, CheckCheck } from "lucide-react"
+import { Bell, BellOff, CheckCheck } from "lucide-react"
 import { useNotificationStore } from "@/lib/store/notification-store"
 import { usePushPermission } from "@/hooks/use-push-permission"
 
@@ -144,8 +144,8 @@ export function NotificationCenter() {
                                     key={notification.id}
                                     role="listitem"
                                     className={`flex items-start gap-3 p-3 cursor-pointer outline-none focus:bg-accent rounded-md ${notification.status === "unread"
-                                            ? "bg-muted/50"
-                                            : ""
+                                        ? "bg-muted/50"
+                                        : ""
                                         }`}
                                     onClick={() => {
                                         if (notification.status === "unread") {

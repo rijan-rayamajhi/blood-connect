@@ -72,18 +72,6 @@ export default function ReportsPage() {
     const expiredUnits = items.filter((i) => i.status === "expired").length
 
     // ── Hospital-wise demand (from request store) ────────────────────────────
-    const hospitalDemand = requests.reduce<
-        Record<string, { name: string; requests: number }>
-    >((acc, req) => {
-        if (!acc[req.hospitalId]) {
-            acc[req.hospitalId] = { name: req.hospitalName, requests: 0 }
-        }
-        acc[req.hospitalId].requests++
-        return acc
-    }, {})
-    const hospitalDemandRows = Object.values(hospitalDemand).sort(
-        (a, b) => b.requests - a.requests
-    )
 
     // ── Export handlers ──────────────────────────────────────────────────────
     function handleExportCSV() {

@@ -1,6 +1,6 @@
 "use client"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,14 +20,26 @@ import { TableSkeleton, CardListSkeleton } from "@/components/ui/skeletons"
 import { EmptyState } from "@/components/ui/empty-state"
 
 import { useInventoryStore } from "@/lib/store/inventory-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 
 export default function InventoryPage() {
     const [searchTerm, setSearchTerm] = useState("")
-    const { items, isLoading } = useInventoryStore()
+    const { items, isLoading, fetchItems, subscribeRealtime, unsubscribeRealtime } = useInventoryStore()
+    const user = useAuthStore((s) => s.user)
 
-    // Simulate loading on mount (optional, if we want to show skeleton initially)
-    // const [isPageLoading, setIsPageLoading] = useState(true)
-    // useEffect(() => { setTimeout(() => setIsPageLoading(false), 1000) }, [])
+    // Fetch inventory on mount and subscribe to realtime updates
+    useEffect(() => {
+        fetchItems()
+
+        if (user?.organizationId) {
+            subscribeRealtime(user.organizationId)
+        }
+
+        return () => {
+            unsubscribeRealtime()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.organizationId])
 
     // Simple filter logic for demonstration (DataTable handles most, but for external filters)
     const filteredData = items.filter(item =>
@@ -143,7 +155,7 @@ export default function InventoryPage() {
                                 <CardHeader className="pb-2 p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle className="text-base font-bold">{item.id}</CardTitle>
+                                            <CardTitle className="text-base font-bold">{item.id.slice(0, 8)}</CardTitle>
                                             <div className="text-sm text-muted-foreground mt-1 truncate max-w-[150px]">{item.componentType} • {item.quantity}ml</div>
                                         </div>
                                         <Badge variant="outline" className="font-bold shrink-0">{item.bloodGroup}</Badge>

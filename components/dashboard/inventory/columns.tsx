@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { InventoryItem, useInventoryStore } from "@/lib/store/inventory-store"
 import { getInventoryBadgeVariant, getInventoryBadgeClass } from "@/lib/utils/inventory-status-map"
 import { getRecommendedFIFOUnit } from "@/lib/utils/fifo-hook"
@@ -122,7 +122,7 @@ export const columns: ColumnDef<InventoryItem>[] = [
 ]
 
 import { toast } from "sonner"
-import { Trash2, Edit, Eye, Copy, Ban } from "lucide-react"
+import { Trash2, Edit, Eye, Copy } from "lucide-react"
 
 function ActionCell({ item }: { item: InventoryItem }) {
     const deleteItem = useInventoryStore((state) => state.deleteItem)
