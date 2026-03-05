@@ -1,7 +1,4 @@
 "use client"
-
-import * as React from "react"
-import { useAdminRegistrationStore } from "@/lib/store/admin-registration-store"
 import { OrganizationRegistration, RegistrationStatus } from "@/types/registration"
 import { getStatusVariant } from "@/lib/utils/registration-status-map"
 import {
@@ -98,7 +95,7 @@ const RegistrationTable = ({
                             <TableCell className="capitalize">{reg.type.replace("-", " ")}</TableCell>
                             <TableCell>{formatDate(reg.submittedAt)}</TableCell>
                             <TableCell>
-                                <Badge variant={getStatusVariant(reg.status) as any}>
+                                <Badge variant={getStatusVariant(reg.status) as "default" | "destructive" | "outline" | "secondary"}>
                                     {reg.status}
                                 </Badge>
                             </TableCell>
@@ -135,12 +132,52 @@ const RegistrationTable = ({
     </div>
 )
 
+import * as React from "react"
 export default function VerificationPage() {
-    const { registrations, approveRegistration, rejectRegistration, suspendOrganization } = useAdminRegistrationStore()
+    const [registrations, setRegistrations] = React.useState<OrganizationRegistration[]>([])
     const [selectedOrg, setSelectedOrg] = React.useState<OrganizationRegistration | null>(null)
     const [isViewModalOpen, setIsViewModalOpen] = React.useState(false)
     const [remarks, setRemarks] = React.useState("")
     const [isRejectMode, setIsRejectMode] = React.useState(false)
+
+    const fetchRegistrations = async () => {
+        try {
+            const res = await fetch('/api/registrations')
+            if (!res.ok) throw new Error()
+            const result = await res.json()
+            if (result.success) {
+                setRegistrations(result.data)
+            } else {
+                toast.error(result.error || "Failed to load registrations")
+            }
+        } catch {
+            toast.error("Failed to fetch registrations")
+        }
+    }
+
+    React.useEffect(() => {
+        fetchRegistrations()
+    }, [])
+
+    const handleAction = async (id: string, action: string, remarksText?: string) => {
+        try {
+            const res = await fetch(`/api/registrations/${id}/${action}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remarks: remarksText })
+            })
+            const result = await res.json()
+            if (result.success) {
+                toast.success(`Organization ${action}d successfully`)
+                fetchRegistrations()
+                setIsViewModalOpen(false)
+            } else {
+                toast.error(result.error || `Failed to ${action} organization`)
+            }
+        } catch {
+            toast.error(`An error occurred while updating organization status`)
+        }
+    }
 
     const handleOpenView = (org: OrganizationRegistration) => {
         setSelectedOrg(org)
@@ -149,26 +186,17 @@ export default function VerificationPage() {
         setRemarks("")
     }
 
-    const onApprove = (id: string) => {
-        approveRegistration(id)
-        toast.success("Organization approved successfully")
-        setIsViewModalOpen(false)
-    }
+    const onApprove = (id: string) => handleAction(id, 'approve')
 
     const onReject = (id: string) => {
         if (!remarks.trim()) {
             toast.error("Please provide remarks for rejection")
             return
         }
-        rejectRegistration(id, remarks)
-        toast.error("Organization rejected")
-        setIsViewModalOpen(false)
+        handleAction(id, 'reject', remarks)
     }
 
-    const onSuspend = (id: string) => {
-        suspendOrganization(id)
-        toast.warning("Organization suspended")
-    }
+    const onSuspend = (id: string) => handleAction(id, 'suspend')
 
     const filteredRegistrations = (status: RegistrationStatus) =>
         registrations.filter(r => r.status === status)

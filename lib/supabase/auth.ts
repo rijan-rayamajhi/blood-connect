@@ -177,6 +177,15 @@ export async function getSessionAndProfile(): Promise<AuthResult> {
         return { success: false, error: 'Profile not found.' }
     }
 
+    // Check organization status for non-admins to terminate active session if suspended
+    if (profile.role !== 'admin' && profile.organizationId) {
+        const orgCheck = await checkOrgStatus(supabase, profile.organizationId)
+        if (orgCheck) {
+            await supabase.auth.signOut()
+            return { success: false, error: orgCheck }
+        }
+    }
+
     return { success: true, profile }
 }
 

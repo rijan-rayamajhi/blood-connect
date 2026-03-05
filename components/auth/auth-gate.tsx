@@ -15,10 +15,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }, [initialize])
 
     useEffect(() => {
-        if (sessionReady) {
-            setIsReady(true)
+        if (sessionReady && !isReady) {
+            const timer = setTimeout(() => setIsReady(true), 0)
+            return () => clearTimeout(timer)
         }
-    }, [sessionReady])
+    }, [sessionReady, isReady])
 
     if (!isReady) {
         return (

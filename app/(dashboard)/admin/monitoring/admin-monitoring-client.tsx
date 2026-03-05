@@ -62,7 +62,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { useAdminRegistrationStore } from "@/lib/store/admin-registration-store"
+
 import { toast } from "sonner"
 
 // Helper format function (since we saw date-fns issues previously, but we'll try to use a native approach if date-fns fails)
@@ -98,9 +98,7 @@ export function AdminMonitoringClient() {
         adminEscalateRequest: state.adminEscalateRequest
     })))
 
-    const { adminForceSuspend } = useAdminRegistrationStore(useShallow(state => ({
-        adminForceSuspend: state.adminForceSuspend
-    })))
+
 
     const { config } = useSystemConfigStore(useShallow(state => ({
         config: state.config
@@ -193,15 +191,29 @@ export function AdminMonitoringClient() {
         setEscalateModalReqId(null)
     }
 
-    const handleSuspendConfirm = () => {
+    const handleSuspendConfirm = async () => {
         if (!suspendModalOrgId || !suspendReason.trim()) {
             toast.error("Please provide a suspension reason.")
             return
         }
-        adminForceSuspend(suspendModalOrgId, suspendReason)
-        toast.warning("Organization has been forcefully suspended")
-        setSuspendModalOrgId(null)
-        setSuspendReason("")
+        try {
+            const res = await fetch(`/api/registrations/${suspendModalOrgId}/suspend`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remarks: suspendReason })
+            })
+            const result = await res.json()
+            if (result.success) {
+                toast.warning("Organization has been forcefully suspended")
+            } else {
+                toast.error(result.error || "Failed to suspend organization")
+            }
+        } catch (e) {
+            toast.error("An error occurred while suspending organization")
+        } finally {
+            setSuspendModalOrgId(null)
+            setSuspendReason("")
+        }
     }
 
     return (
@@ -292,12 +304,12 @@ export function AdminMonitoringClient() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={getUrgencyBadgeVariant(req.urgency) as any} className="capitalize">
+                                        <Badge variant={getUrgencyBadgeVariant(req.urgency) as "default" | "destructive" | "warning" | "secondary"} className="capitalize">
                                             {req.urgency}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={getStatusBadgeVariant(req.status) as any} className="capitalize">
+                                        <Badge variant={getStatusBadgeVariant(req.status) as "default" | "destructive" | "success" | "secondary"} className="capitalize">
                                             {req.status}
                                         </Badge>
                                     </TableCell>
@@ -308,7 +320,7 @@ export function AdminMonitoringClient() {
                                                 Escalate
                                             </Badge>
                                         ) : req.isStuck ? (
-                                            <Badge variant={"warning" as any} className="flex items-center gap-1 w-fit">
+                                            <Badge variant={"warning"} className="flex items-center gap-1 w-fit">
                                                 <AlertTriangle className="h-3 w-3" />
                                                 Stuck
                                             </Badge>
@@ -395,14 +407,14 @@ export function AdminMonitoringClient() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground font-semibold uppercase">Urgency</p>
-                                    <Badge variant={getUrgencyBadgeVariant(selectedRequest.urgency) as any} className="mt-1 capitalize">
+                                    <Badge variant={getUrgencyBadgeVariant(selectedRequest.urgency) as "default" | "destructive" | "warning" | "secondary"} className="mt-1 capitalize">
                                         {selectedRequest.urgency}
                                     </Badge>
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground font-semibold uppercase">Current Status</p>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <Badge variant={getStatusBadgeVariant(selectedRequest.status) as any} className="capitalize">
+                                        <Badge variant={getStatusBadgeVariant(selectedRequest.status) as "default" | "destructive" | "success" | "secondary"} className="capitalize">
                                             {selectedRequest.status}
                                         </Badge>
                                         {selectedRequest.overridden && (

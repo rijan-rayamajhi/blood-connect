@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { BloodUnit } from '@/types/inventory'
 import { classifyUnitStatus } from '@/lib/utils/inventory-lifecycle'
 import { useNotificationStore } from './notification-store'
+import { useSystemConfigStore } from './system-config-store'
 
 export type BloodGroup = "A+" | "A-" | "B+" | "B-" | "O+" | "O-" | "AB+" | "AB-"
 export type ComponentType = "Whole Blood" | "Packed RBC" | "Platelets" | "Plasma" | "Cryoprecipitate"
@@ -60,7 +61,7 @@ export const useInventoryStore = create<InventoryState>()(
 
             addItem: (newItem) => {
                 const id = `UNIT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
-                const status = classifyUnitStatus(newItem as any)
+                const status = classifyUnitStatus(newItem as InventoryItem)
 
                 if (status === "near-expiry") {
                     useNotificationStore.getState().addNotification({
@@ -142,9 +143,7 @@ export const useInventoryStore = create<InventoryState>()(
 
                 let activeThreshold = thresholdInput ?? 10
                 if (thresholdInput === undefined) {
-                    import('./system-config-store').then(({ useSystemConfigStore }) => {
-                        activeThreshold = useSystemConfigStore.getState().config.lowStockThreshold
-                    }).catch(() => { })
+                    activeThreshold = useSystemConfigStore.getState().config.lowStockThreshold
                 }
 
                 items.forEach(item => {
@@ -161,9 +160,8 @@ export const useInventoryStore = create<InventoryState>()(
             getNearExpiryUnits: () => {
                 let hoursConfig = 48
                 try {
-                    const { useSystemConfigStore } = require('./system-config-store')
                     hoursConfig = useSystemConfigStore.getState().config.nearExpiryHours
-                } catch (e) { }
+                } catch { }
 
                 const now = Date.now()
                 return get().items.filter(item => {

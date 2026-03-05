@@ -21,7 +21,7 @@ export function ChartSkeleton({ height = 300 }: ChartSkeletonProps) {
                                 key={i}
                                 className="flex-1 rounded-t"
                                 style={{
-                                    height: `${30 + Math.random() * 60}%`,
+                                    height: `${30 + (i * 13) % 60}%`,
                                 }}
                             />
                         ))}

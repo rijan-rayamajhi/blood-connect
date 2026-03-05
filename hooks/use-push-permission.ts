@@ -23,11 +23,17 @@ export function usePushPermission(): UsePushPermissionReturn {
     // Sync if permission changes externally
     useEffect(() => {
         if (typeof window === "undefined" || !("Notification" in window)) {
-            setPermission("unsupported")
+            if (permission !== "unsupported") {
+                const timer = setTimeout(() => setPermission("unsupported"), 0)
+                return () => clearTimeout(timer)
+            }
             return
         }
-        setPermission(Notification.permission)
-    }, [])
+        if (Notification.permission !== permission) {
+            const timer = setTimeout(() => setPermission(Notification.permission), 0)
+            return () => clearTimeout(timer)
+        }
+    }, [permission])
 
     const requestPermission = useCallback(async () => {
         if (typeof window === "undefined" || !("Notification" in window)) {

@@ -11,7 +11,10 @@ export function useOnlineStatus(): boolean {
     useEffect(() => {
         if (typeof window === "undefined") return
 
-        setIsOnline(navigator.onLine)
+        if (navigator.onLine !== isOnline) {
+            const timer = setTimeout(() => setIsOnline(navigator.onLine), 0)
+            return () => clearTimeout(timer)
+        }
         window.addEventListener("online", handleOnline)
         window.addEventListener("offline", handleOffline)
 
@@ -19,7 +22,7 @@ export function useOnlineStatus(): boolean {
             window.removeEventListener("online", handleOnline)
             window.removeEventListener("offline", handleOffline)
         }
-    }, [handleOnline, handleOffline])
+    }, [handleOnline, handleOffline, isOnline])
 
     return isOnline
 }

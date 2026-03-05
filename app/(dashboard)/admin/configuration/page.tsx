@@ -8,7 +8,6 @@ import { toast } from "sonner"
 import {
     Save,
     Bell,
-    AlertTriangle,
     Clock,
     Database,
     Megaphone,
@@ -19,7 +18,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -142,7 +140,7 @@ export default function AdminConfigurationPage() {
                                 value={formData.stuckRequestThresholdMinutes}
                                 onChange={(e) => handleNumberChange("stuckRequestThresholdMinutes", e.target.value)}
                             />
-                            <p className="text-xs text-muted-foreground">Time before a normal request is flagged as "Stuck" awaiting blood bank action.</p>
+                            <p className="text-xs text-muted-foreground">Time before a normal request is flagged as &ldquo;Stuck&rdquo; awaiting blood bank action.</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -192,8 +190,8 @@ export default function AdminConfigurationPage() {
                         {/* Active Announcement Status */}
                         {config.announcementMessage ? (
                             <div className={`p-4 rounded-md border flex items-start justify-between ${config.announcementPriority === "critical" ? "bg-destructive/10 border-destructive text-destructive" :
-                                    config.announcementPriority === "moderate" ? "bg-warning/10 border-warning text-warning" :
-                                        "bg-primary/10 border-primary text-primary"
+                                config.announcementPriority === "moderate" ? "bg-warning/10 border-warning text-warning" :
+                                    "bg-primary/10 border-primary text-primary"
                                 }`}>
                                 <div>
                                     <div className="flex items-center gap-2 font-bold mb-1">
@@ -202,7 +200,7 @@ export default function AdminConfigurationPage() {
                                             {config.announcementPriority}
                                         </Badge>
                                     </div>
-                                    <p className="font-medium">"{config.announcementMessage}"</p>
+                                    <p className="font-medium">&ldquo;{config.announcementMessage}&rdquo;</p>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => {
                                     clearAnnouncement()
@@ -229,7 +227,7 @@ export default function AdminConfigurationPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Priority Level</Label>
-                                <Select value={announcePriority} onValueChange={(v) => setAnnouncePriority(v as any)}>
+                                <Select value={announcePriority} onValueChange={(v) => setAnnouncePriority(v as "normal" | "moderate" | "critical")}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>

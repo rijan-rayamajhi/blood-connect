@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2, Mail, Lock, Building2, UserCircle, CheckCircle2 } from "lucide-react"
-import { useAuthStore } from "@/lib/store/auth-store"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -55,7 +54,8 @@ const formSchema = z.object({
 export function RegisterForm() {
     const [isLoading, setIsLoading] = React.useState(false)
     const [isSuccess, setIsSuccess] = React.useState(false)
-    const signUp = useAuthStore(state => state.signUp)
+    const [licenseFile, setLicenseFile] = React.useState<File | null>(null)
+    const [certificationFile, setCertificationFile] = React.useState<File | null>(null)
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -71,21 +71,41 @@ export function RegisterForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
 
-        const result = await signUp(
-            values.email,
-            values.password,
-            values.orgName,
-            values.role
-        )
-
-        if (!result.success) {
-            toast.error(result.error || "Registration failed. Please try again.")
+        if (!licenseFile) {
+            toast.error("Please upload an operating license.")
             setIsLoading(false)
             return
         }
 
-        setIsSuccess(true)
-        toast.success("Registration submitted successfully!")
+        const formData = new FormData()
+        formData.append('orgName', values.orgName)
+        formData.append('role', values.role)
+        formData.append('email', values.email)
+        formData.append('password', values.password)
+        formData.append('licenseFile', licenseFile)
+
+        if (certificationFile) {
+            formData.append('certificationFile', certificationFile)
+        }
+
+        try {
+            const response = await fetch('/api/registrations', {
+                method: 'POST',
+                body: formData
+            })
+
+            const result = await response.json()
+            if (!response.ok || !result.success) {
+                toast.error(result.error || "Registration failed. Please try again.")
+                setIsLoading(false)
+                return
+            }
+
+            setIsSuccess(true)
+            toast.success("Registration submitted successfully!")
+        } catch {
+            toast.error("An unexpected error occurred.")
+        }
         setIsLoading(false)
     }
 
@@ -212,6 +232,29 @@ export function RegisterForm() {
                                     </FormItem>
                                 )}
                             />
+                        </div>
+
+                        <div className="space-y-4 pt-2 border-t mt-4">
+                            <div className="space-y-2">
+                                <FormLabel className="flex items-center gap-1">Operating License <span className="text-destructive">*</span></FormLabel>
+                                <Input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={(e) => setLicenseFile(e.target.files?.[0] || null)}
+                                    className="cursor-pointer file:cursor-pointer file:bg-muted file:text-muted-foreground file:border-0 hover:file:bg-muted/80 file:rounded-md file:px-2 file:py-1 file:-ml-1"
+                                />
+                                <p className="text-[0.8rem] text-muted-foreground">Please upload your official registration document.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <FormLabel>Special Certification (Optional)</FormLabel>
+                                <Input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={(e) => setCertificationFile(e.target.files?.[0] || null)}
+                                    className="cursor-pointer file:cursor-pointer file:bg-muted file:text-muted-foreground file:border-0 hover:file:bg-muted/80 file:rounded-md file:px-2 file:py-1 file:-ml-1"
+                                />
+                                <p className="text-[0.8rem] text-muted-foreground">Upload any additional certifications (e.g., AABB compliance).</p>
+                            </div>
                         </div>
 
                         <Button type="submit" className="w-full bg-critical hover:bg-critical/90 mt-2" disabled={isLoading}>
