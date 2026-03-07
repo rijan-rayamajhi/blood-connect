@@ -7,6 +7,7 @@ export interface AuditEvent {
     action: string
     targetId: string
     timestamp: number
+    metadata?: Record<string, unknown>
 }
 
 interface AuditState {

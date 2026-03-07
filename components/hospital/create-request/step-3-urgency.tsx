@@ -12,6 +12,7 @@ export type RequestType = "broadcast" | "direct"
 export interface Step3Data {
     urgency: UrgencyLevel
     requestType: RequestType
+    selectedBankId?: string | null
 }
 
 interface Step3Props {

@@ -16,6 +16,8 @@ import { Step2Prescription, Step2Data } from "@/components/hospital/create-reque
 import { Step3Urgency, Step3Data } from "@/components/hospital/create-request/step-3-urgency"
 import { Step4Review } from "@/components/hospital/create-request/step-4-review"
 import { useCreateRequestStore } from "@/lib/modal-store"
+import { useRequestStore } from "@/lib/store/request-store"
+import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 const steps = [
@@ -56,26 +58,57 @@ export function CreateRequestSheet() {
         setCurrentStep(prev => prev + 1)
     }
 
-    const handleFinalSubmit = () => {
-        // Here you would normally make an API call
-        console.log("Submitting Request:", {
-            ...step1Data,
-            ...step2Data,
-            ...step3Data
-        })
+    const { createRequest } = useRequestStore()
 
-        toast.success("Blood Request Submitted", {
-            description: "Your request has been broadcasted to nearby blood banks.",
-        })
+    const handleFinalSubmit = async () => {
+        try {
+            let prescriptionFileId = null
 
-        onClose()
-        // Reset state
-        setTimeout(() => {
-            setCurrentStep(1)
-            setStep1Data({})
-            setStep2Data({})
-            setStep3Data({})
-        }, 300)
+            // Upload prescription if exists
+            if (step2Data.file) {
+                const supabase = createClient()
+                const file = step2Data.file
+                const fileExt = file.name.split('.').pop()
+                const fileName = `${Math.random()}.${fileExt}`
+                const filePath = `prescriptions/${fileName}`
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('prescriptions')
+                    .upload(filePath, file)
+
+                if (uploadError) {
+                    throw new Error('Failed to upload prescription: ' + uploadError.message)
+                }
+                prescriptionFileId = uploadData.path
+            }
+
+            await createRequest({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                bloodGroup: step1Data.bloodGroup as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                componentType: step1Data.componentType as any,
+                quantity: step1Data.quantity || 0,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                urgency: step3Data.urgency as any,
+                requiredDate: step1Data.requiredDate || new Date().toISOString(),
+                prescriptionFileId,
+                bloodBankId: step3Data.selectedBankId || null
+            })
+
+            onClose()
+            // Reset state
+            setTimeout(() => {
+                setCurrentStep(1)
+                setStep1Data({})
+                setStep2Data({})
+                setStep3Data({})
+            }, 300)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            toast.error("Failed to create request", {
+                description: error.message
+            })
+        }
     }
 
     const handleNextClick = () => {
