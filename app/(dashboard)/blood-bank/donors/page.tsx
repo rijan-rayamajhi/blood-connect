@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter } from "lucide-react"
 import { useDonorStore } from "@/lib/store/donor-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { columns } from "@/components/dashboard/donors/columns"
 import { AddDonorModal } from "@/components/dashboard/donors/add-donor-modal"
 import { DataTable } from "@/components/ui/data-table"
@@ -24,9 +25,19 @@ import { Phone, Mail } from "lucide-react"
 import { DonorActions } from "@/components/dashboard/donors/donor-actions"
 
 export default function DonorsPage() {
-    const { donors, isLoading } = useDonorStore()
+    const { donors, isLoading, fetchDonors, subscribeRealtime, unsubscribeRealtime } = useDonorStore()
+    const user = useAuthStore((s) => s.user)
     const [filterValue, setFilterValue] = useState("")
     const [statusFilter, setStatusFilter] = useState("All")
+
+    useEffect(() => {
+        fetchDonors()
+        if (user?.organizationId) {
+            subscribeRealtime(user.organizationId)
+        }
+        return () => unsubscribeRealtime()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.organizationId])
 
     const filteredDonors = donors.filter((donor) => {
         const matchesSearch = donor.fullName.toLowerCase().includes(filterValue.toLowerCase()) ||

@@ -1,148 +1,209 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { BloodGroup } from './inventory-store'
+import { createClient } from '@/lib/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export type DonorStatus = "Available" | "Ineligible" | "Temporary Deferral"
 
 export type Donor = {
     id: string
+    organizationId: string
     fullName: string
     bloodGroup: BloodGroup
     age: number
-    lastDonationDate: string // YYYY-MM-DD
+    lastDonationDate: string | null // YYYY-MM-DD
     totalDonations: number
     status: DonorStatus
     contactNumber: string
     email: string
+    createdAt: string
+    updatedAt: string
+}
+
+export type DonorDonation = {
+    id: string
+    donorId: string
+    donationDate: string
+    bloodGroup: string
+    componentType: string
+    quantity: number
+    notes: string | null
+    createdAt: string
 }
 
 interface DonorState {
     donors: Donor[]
     isLoading: boolean
     error: string | null
-    fetchDonors: () => Promise<void>
-    addDonor: (donor: Omit<Donor, 'id' | 'status' | 'totalDonations'>) => Promise<void>
+    _realtimeChannel: RealtimeChannel | null
+
+    fetchDonors: (filters?: { blood_group?: string; status?: string; organization_id?: string }) => Promise<void>
+    addDonor: (donor: Omit<Donor, 'id' | 'status' | 'totalDonations' | 'organizationId' | 'lastDonationDate' | 'createdAt' | 'updatedAt'> & { lastDonationDate?: string }) => Promise<void>
     updateDonor: (id: string, donor: Partial<Donor>) => Promise<void>
     deleteDonor: (id: string) => Promise<void>
+    recordDonation: (id: string, donation: { donationDate: string; componentType: string; quantity: number; notes?: string }) => Promise<void>
+
+    // Realtime
+    subscribeRealtime: (organizationId: string) => void
+    unsubscribeRealtime: () => void
 }
 
-export const useDonorStore = create<DonorState>()(
-    persist(
-        (set) => ({
-            donors: [
-                {
-                    id: "DON-001",
-                    fullName: "John Doe",
-                    bloodGroup: "O+",
-                    age: 32,
-                    lastDonationDate: "2023-11-15",
-                    totalDonations: 5,
-                    status: "Available",
-                    contactNumber: "+1 (555) 123-4567",
-                    email: "john.doe@example.com"
-                },
-                {
-                    id: "DON-002",
-                    fullName: "Jane Smith",
-                    bloodGroup: "A-",
-                    age: 28,
-                    lastDonationDate: "2024-01-10",
-                    totalDonations: 2,
-                    status: "Temporary Deferral",
-                    contactNumber: "+1 (555) 987-6543",
-                    email: "jane.smith@example.com"
-                },
-                {
-                    id: "DON-003",
-                    fullName: "Robert Johnson",
-                    bloodGroup: "B+",
-                    age: 45,
-                    lastDonationDate: "2023-08-20",
-                    totalDonations: 12,
-                    status: "Available",
-                    contactNumber: "+1 (555) 456-7890",
-                    email: "robert.j@example.com"
-                },
-                {
-                    id: "DON-004",
-                    fullName: "Emily Davis",
-                    bloodGroup: "AB+",
-                    age: 24,
-                    lastDonationDate: "2024-02-01",
-                    totalDonations: 1,
-                    status: "Ineligible",
-                    contactNumber: "+1 (555) 789-0123",
-                    email: "emily.d@example.com"
-                },
-                {
-                    id: "DON-005",
-                    fullName: "Michael Wilson",
-                    bloodGroup: "O-",
-                    age: 35,
-                    lastDonationDate: "2023-12-05",
-                    totalDonations: 8,
-                    status: "Available",
-                    contactNumber: "+1 (555) 234-5678",
-                    email: "michael.w@example.com"
-                }
+export const useDonorStore = create<DonorState>()((set, get) => ({
+    donors: [],
+    isLoading: false,
+    error: null,
+    _realtimeChannel: null,
 
-            ],
-            isLoading: false,
-            error: null,
+    fetchDonors: async (filters = {}) => {
+        set({ isLoading: true, error: null })
+        try {
+            const queryParams = new URLSearchParams()
+            if (filters.blood_group) queryParams.append('blood_group', filters.blood_group)
+            if (filters.status) queryParams.append('status', filters.status)
+            if (filters.organization_id) queryParams.append('organization_id', filters.organization_id)
 
-            fetchDonors: async () => {
-                set({ isLoading: true, error: null })
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 800))
-                    set({ isLoading: false })
-                } catch {
-                    set({ error: "Failed to fetch donors", isLoading: false })
-                }
-            },
+            const url = `/api/donors${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+            const res = await fetch(url)
+            const json = await res.json()
 
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || 'Failed to fetch donors')
+            }
 
-            addDonor: async (newDonor) => {
-                set({ isLoading: true, error: null })
-                await new Promise(resolve => setTimeout(resolve, 600))
-
-                set((state) => ({
-                    donors: [
-                        {
-                            ...newDonor,
-                            id: `DON-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
-                            status: "Available",
-                            totalDonations: 0
-                        },
-                        ...state.donors
-                    ],
-                    isLoading: false
-                }))
-            },
-
-            updateDonor: async (id, updatedDonor) => {
-                set({ isLoading: true, error: null })
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                set((state) => ({
-                    donors: state.donors.map((donor) =>
-                        donor.id === id ? { ...donor, ...updatedDonor } : donor
-                    ),
-                    isLoading: false
-                }))
-            },
-
-            deleteDonor: async (id) => {
-                set({ isLoading: true, error: null })
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                set((state) => ({
-                    donors: state.donors.filter((donor) => donor.id !== id),
-                    isLoading: false
-                }))
-            },
-        }),
-        {
-            name: 'blood-donor-storage',
+            set({ donors: json.data || [], isLoading: false })
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to fetch donors'
+            set({ error: message, isLoading: false })
         }
-    )
-)
+    },
+
+    addDonor: async (newDonor) => {
+        set({ error: null })
+        try {
+            const res = await fetch('/api/donors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newDonor),
+            })
+            const json = await res.json()
+
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || 'Failed to add donor')
+            }
+
+            set((state) => ({
+                donors: [json.data, ...state.donors],
+            }))
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to add donor'
+            set({ error: message })
+            throw err
+        }
+    },
+
+    updateDonor: async (id, updatedDonor) => {
+        set({ error: null })
+        try {
+            const res = await fetch(`/api/donors/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedDonor),
+            })
+            const json = await res.json()
+
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || 'Failed to update donor')
+            }
+
+            set((state) => ({
+                donors: state.donors.map((donor) =>
+                    donor.id === id ? json.data : donor
+                ),
+            }))
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to update donor'
+            set({ error: message })
+            throw err
+        }
+    },
+
+    deleteDonor: async (id) => {
+        set({ error: null })
+        try {
+            const res = await fetch(`/api/donors/${id}`, {
+                method: 'DELETE',
+            })
+            const json = await res.json()
+
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || 'Failed to delete donor')
+            }
+
+            set((state) => ({
+                donors: state.donors.filter((donor) => donor.id !== id),
+            }))
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to delete donor'
+            set({ error: message })
+            throw err
+        }
+    },
+
+    recordDonation: async (id, donation) => {
+        set({ error: null })
+        try {
+            const res = await fetch(`/api/donors/${id}/donations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(donation),
+            })
+            const json = await res.json()
+
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || 'Failed to record donation')
+            }
+
+            // Refresh donors to get updated totalDonations, lastDonationDate, status from trigger
+            get().fetchDonors()
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to record donation'
+            set({ error: message })
+            throw err
+        }
+    },
+
+    subscribeRealtime: (organizationId) => {
+        get().unsubscribeRealtime()
+
+        const supabase = createClient()
+        const channelName = `donors_${organizationId}`
+
+        const channel = supabase
+            .channel(channelName)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'donors',
+                    filter: `organization_id=eq.${organizationId}`,
+                },
+                () => {
+                    // On any change, refresh the list
+                    get().fetchDonors()
+                }
+            )
+            .subscribe()
+
+        set({ _realtimeChannel: channel })
+    },
+
+    unsubscribeRealtime: () => {
+        const channel = get()._realtimeChannel
+        if (channel) {
+            const supabase = createClient()
+            supabase.removeChannel(channel)
+            set({ _realtimeChannel: null })
+        }
+    },
+}))

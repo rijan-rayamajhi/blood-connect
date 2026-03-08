@@ -14,6 +14,7 @@ import {
 import { useDonorStore } from "@/lib/store/donor-store"
 import { toast } from "sonner"
 import { useState } from "react"
+import { RecordDonationModal } from "./record-donation-modal"
 
 export const DonorActions = ({ donor }: { donor: Donor }) => {
     const deleteDonor = useDonorStore((state) => state.deleteDonor)
@@ -41,6 +42,7 @@ export const DonorActions = ({ donor }: { donor: Donor }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <RecordDonationModal donor={donor} asDropdownItem={true} />
                 <DropdownMenuItem
                     onClick={() => {
                         navigator.clipboard.writeText(donor.contactNumber)
