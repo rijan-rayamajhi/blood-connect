@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { DiscoveryFilters } from "@/components/hospital/discovery-filters"
 import { BloodBankCard } from "@/components/hospital/blood-bank-card"
@@ -10,9 +10,7 @@ import { ViewToggle } from "@/components/hospital/view-toggle"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { useDiscoveryStore } from "@/lib/store/discovery-store"
-import { filterAndRankBloodBanks } from "@/lib/utils/discovery-engine"
 import { useGeolocation } from "@/hooks/use-geolocation"
-import { BloodBank } from "@/types/blood-bank"
 
 // Dynamic import for map (SSR-incompatible)
 const DiscoveryMap = dynamic(
@@ -30,70 +28,6 @@ const DiscoveryMap = dynamic(
     }
 )
 
-// Simulated database response
-const mockBloodBanks: BloodBank[] = [
-    {
-        id: "BB-001",
-        name: "City Central Blood Bank",
-        latitude: 28.6139,
-        longitude: 77.2090,
-        averageResponseMinutes: 10,
-        inventory: [
-            { bloodGroup: "A+", quantity: 20 },
-            { bloodGroup: "B+", quantity: 15 },
-            { bloodGroup: "O+", quantity: 45 },
-            { bloodGroup: "AB+", quantity: 5 }
-        ]
-    },
-    {
-        id: "BB-002",
-        name: "Red Cross Society",
-        latitude: 28.6250,
-        longitude: 77.2450,
-        averageResponseMinutes: 25,
-        inventory: [
-            { bloodGroup: "O-", quantity: 8 },
-            { bloodGroup: "A-", quantity: 4 },
-            { bloodGroup: "B-", quantity: 3 },
-            { bloodGroup: "AB-", quantity: 1 },
-            { bloodGroup: "A+", quantity: 50 },
-            { bloodGroup: "B+", quantity: 40 },
-            { bloodGroup: "O+", quantity: 100 },
-            { bloodGroup: "AB+", quantity: 20 }
-        ]
-    },
-    {
-        id: "BB-003",
-        name: "St. Mary's Hospital",
-        latitude: 28.5900,
-        longitude: 77.1900,
-        averageResponseMinutes: 18,
-        inventory: [
-            { bloodGroup: "A+", quantity: 10 },
-            { bloodGroup: "B+", quantity: 25 },
-            { bloodGroup: "O+", quantity: 30 }
-        ]
-    },
-    {
-        id: "BB-004",
-        name: "Community Health Center",
-        latitude: 28.6500,
-        longitude: 77.1500,
-        averageResponseMinutes: 35,
-        inventory: []
-    },
-    {
-        id: "BB-005",
-        name: "Global Blood Bank",
-        latitude: 28.7000,
-        longitude: 77.2800,
-        averageResponseMinutes: 45,
-        inventory: [
-            { bloodGroup: "AB+", quantity: 12 },
-            { bloodGroup: "AB-", quantity: 6 }
-        ]
-    }
-]
 
 export function DiscoveryClient() {
     // For demo purposes, set a default user location somewhere centrally relative to the mock data.
@@ -108,35 +42,45 @@ export function DiscoveryClient() {
         requestPermission,
     } = useGeolocation()
 
-    // Discovery store
-    const { setUserLocation } = useDiscoveryStore()
+    // Subscribe to store filters and data
+    const {
+        setUserLocation,
+        bloodBanks,
+        isLoading,
+        error,
+        fetchBloodBanks,
+        enableRealtime,
+        disableRealtime
+    } = useDiscoveryStore()
 
     // Sync geolocation to store when available
     const effectiveUserLocation = geoLocation
         ? { latitude: geoLocation.latitude, longitude: geoLocation.longitude }
         : defaultUserLocation
 
-    // Push to store whenever geo updates
-    if (geoLocation) {
-        setUserLocation(geoLocation.latitude, geoLocation.longitude)
-    }
+    // Initialize fetch and subscribe to realtime on mount
+    useEffect(() => {
+        // Initial fetch with default location if no geolocation yet
+        if (!geoLocation) {
+            setUserLocation(defaultUserLocation.latitude, defaultUserLocation.longitude)
+        }
 
-    // Subscribe to store filters with shallow tracking
-    const filters = useDiscoveryStore((state) => ({
-        radiusKm: state.radiusKm,
-        bloodGroup: state.bloodGroup,
-        quantity: state.quantity,
-        maxResponseTime: state.maxResponseTime,
-        userLocation: state.userLocation || effectiveUserLocation
-    }))
+        enableRealtime()
+
+        return () => {
+            disableRealtime()
+        }
+    }, [enableRealtime, disableRealtime, geoLocation, setUserLocation, defaultUserLocation.latitude, defaultUserLocation.longitude])
+
+    // Push to store whenever geo updates natively
+    useEffect(() => {
+        if (geoLocation) {
+            setUserLocation(geoLocation.latitude, geoLocation.longitude)
+        }
+    }, [geoLocation, setUserLocation])
 
     // Map selection state
     const [selectedBankId, setSelectedBankId] = useState<string | undefined>()
-
-    // Calculate ranked list ONLY when filters change (Performance optimization per DRD requirement)
-    const rankedResults = useMemo(() => {
-        return filterAndRankBloodBanks(mockBloodBanks, filters)
-    }, [filters])
 
     return (
         <div className="flex flex-col gap-6 h-[calc(100vh-8rem)]">
@@ -231,9 +175,23 @@ export function DiscoveryClient() {
 
                         {/* 4. Results Container - List View */}
                         <TabsContent value="list" className="flex-1 overflow-y-auto mt-0">
-                            {rankedResults.length > 0 ? (
+                            {isLoading ? (
+                                <div className="h-full flex items-center justify-center p-6">
+                                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                </div>
+                            ) : error ? (
+                                <div className="h-full flex items-center justify-center p-6">
+                                    <EmptyState
+                                        icon={ShieldAlert}
+                                        title="Error loading blood banks"
+                                        description={error}
+                                        actionLabel="Retry"
+                                        onAction={() => fetchBloodBanks()}
+                                    />
+                                </div>
+                            ) : bloodBanks.length > 0 ? (
                                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 pr-2 pb-4">
-                                    {rankedResults.map((bank, index) => (
+                                    {bloodBanks.map((bank, index) => (
                                         <BloodBankCard
                                             key={bank.id}
                                             name={bank.name}
@@ -263,7 +221,7 @@ export function DiscoveryClient() {
                         {/* 5. Map View */}
                         <TabsContent value="map" className="flex-1 overflow-hidden mt-0">
                             <DiscoveryMap
-                                banks={rankedResults}
+                                banks={bloodBanks}
                                 userLocation={effectiveUserLocation}
                                 selectedBankId={selectedBankId}
                                 onSelectBank={setSelectedBankId}
