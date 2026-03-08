@@ -1,6 +1,7 @@
 "use client"
 
 import { Staff } from "@/lib/store/staff-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +16,10 @@ import { useStaffStore } from "@/lib/store/staff-store"
 
 export const StaffActions = ({ staff }: { staff: Staff }) => {
     const deleteStaff = useStaffStore((state) => state.deleteStaff)
+    const { user } = useAuthStore()
+
+    // Only admins can delete staff members
+    const isAdmin = user?.role === 'admin' || staff.role === 'Admin' // Adjust based on how actual role is stored in user profile vs staff store
 
     return (
         <DropdownMenu>
@@ -31,10 +36,15 @@ export const StaffActions = ({ staff }: { staff: Staff }) => {
                 >
                     Copy Email
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive" onClick={() => deleteStaff(staff.id)}>
-                    Remove Staff
-                </DropdownMenuItem>
+
+                {isAdmin && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onClick={() => deleteStaff(staff.id)}>
+                            Remove Staff
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     )

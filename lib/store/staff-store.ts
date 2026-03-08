@@ -1,90 +1,155 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createClient } from '@/lib/supabase/client'
+import { RealtimeChannel } from '@supabase/supabase-js'
 
 export type StaffRole = "Admin" | "Inventory Manager" | "Request Handler" | "Viewer"
 export type StaffStatus = "Active" | "Offline"
 
 export type Staff = {
     id: string
+    organization_id: string
     name: string
     email: string
     role: StaffRole
     status: StaffStatus
-    lastActive: string // ISO Date string
+    last_active: string // ISO Date string
     phone: string
+    created_at?: string
+    updated_at?: string
 }
 
 interface StaffState {
     staffList: Staff[]
-    addStaff: (staff: Omit<Staff, 'id' | 'status' | 'lastActive'>) => void
-    updateStaff: (id: string, staff: Partial<Staff>) => void
-    deleteStaff: (id: string) => void
+    isLoading: boolean
+    error: string | null
+    isSubscribed: boolean
+    fetchStaff: () => Promise<void>
+    addStaff: (staff: Omit<Staff, 'id' | 'status' | 'last_active' | 'organization_id' | 'created_at' | 'updated_at'>) => Promise<void>
+    updateStaff: (id: string, staff: Partial<Staff>) => Promise<void>
+    deleteStaff: (id: string) => Promise<void>
+    subscribeToStaff: (organizationId: string) => void
+    unsubscribeFromStaff: () => void
 }
 
-export const useStaffStore = create<StaffState>()(
-    persist(
-        (set) => ({
-            staffList: [
-                {
-                    id: "STF-001",
-                    name: "Dr. Sarah Connor",
-                    email: "sarah.c@bloodconnect.com",
-                    role: "Admin",
-                    status: "Active",
-                    lastActive: new Date().toISOString(),
-                    phone: "+1 (555) 000-1111"
-                },
-                {
-                    id: "STF-002",
-                    name: "James Reese",
-                    email: "james.r@bloodconnect.com",
-                    role: "Inventory Manager",
-                    status: "Active",
-                    lastActive: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 mins ago
-                    phone: "+1 (555) 000-2222"
-                },
-                {
-                    id: "STF-003",
-                    name: "Ellen Ripley",
-                    email: "ellen.r@bloodconnect.com",
-                    role: "Request Handler",
-                    status: "Offline",
-                    lastActive: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-                    phone: "+1 (555) 000-3333"
-                },
-                {
-                    id: "STF-004",
-                    name: "John McClane",
-                    email: "john.m@bloodconnect.com",
-                    role: "Viewer",
-                    status: "Offline",
-                    lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-                    phone: "+1 (555) 000-4444"
-                }
+let realtimeSubscription: RealtimeChannel | null = null;
 
-            ],
-            addStaff: (newStaff) => set((state) => ({
-                staffList: [
-                    {
-                        ...newStaff,
-                        id: `STF-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
-                        status: "Offline",
-                        lastActive: new Date().toISOString()
-                    },
-                    ...state.staffList
-                ]
-            })),
-            updateStaff: (id, updatedStaff) => set((state) => ({
-                staffList: state.staffList.map((staff) =>
-                    staff.id === id ? { ...staff, ...updatedStaff } : staff
-                )
-            })),
-            deleteStaff: (id) => set((state) => ({
-                staffList: state.staffList.filter((staff) => staff.id !== id)
-            })),
-        }),
-        {
-            name: 'blood-staff-storage',
+export const useStaffStore = create<StaffState>()((set, get) => ({
+    staffList: [],
+    isLoading: false,
+    error: null,
+    isSubscribed: false,
+
+    fetchStaff: async () => {
+        set({ isLoading: true, error: null })
+        try {
+            const response = await fetch('/api/staff')
+            if (!response.ok) {
+                throw new Error('Failed to fetch staff')
+            }
+            const data = await response.json()
+            set({ staffList: data, isLoading: false })
+        } catch (error: unknown) {
+            set({ error: error instanceof Error ? error.message : 'An error occurred', isLoading: false })
         }
-    )
-)
+    },
+
+    addStaff: async (newStaff) => {
+        try {
+            const response = await fetch('/api/staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStaff)
+            })
+            if (!response.ok) throw new Error('Failed to create staff')
+            const created = await response.json()
+            // We can optionally wait for the realtime event or add it directly
+            set((state) => ({ staffList: [created, ...state.staffList] }))
+        } catch (error: unknown) {
+            set({ error: error instanceof Error ? error.message : 'An error occurred' })
+            throw error
+        }
+    },
+
+    updateStaff: async (id, updatedStaff) => {
+        try {
+            const response = await fetch(`/api/staff/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedStaff)
+            })
+            if (!response.ok) throw new Error('Failed to update staff')
+            const updated = await response.json()
+            set((state) => ({
+                staffList: state.staffList.map((s) => s.id === id ? updated : s)
+            }))
+        } catch (error: unknown) {
+            set({ error: error instanceof Error ? error.message : 'An error occurred' })
+            throw error
+        }
+    },
+
+    deleteStaff: async (id) => {
+        try {
+            const response = await fetch(`/api/staff/${id}`, {
+                method: 'DELETE'
+            })
+            if (!response.ok) throw new Error('Failed to delete staff')
+            set((state) => ({
+                staffList: state.staffList.filter((s) => s.id !== id)
+            }))
+        } catch (error: unknown) {
+            set({ error: error instanceof Error ? error.message : 'An error occurred' })
+            throw error
+        }
+    },
+
+    subscribeToStaff: (organizationId: string) => {
+        if (get().isSubscribed) return;
+
+        const supabase = createClient();
+
+        realtimeSubscription = supabase
+            .channel(`staff_${organizationId}`)
+            .on(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                'postgres_changes' as any,
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'staff',
+                    filter: `organization_id=eq.${organizationId}`
+                },
+                (payload: { eventType: string; new: Staff; old: { id: string } }) => {
+                    const currentStaff = get().staffList;
+                    if (payload.eventType === 'INSERT') {
+                        const newStaff = payload.new;
+                        if (!currentStaff.find(s => s.id === newStaff.id)) {
+                            set({ staffList: [newStaff, ...currentStaff] });
+                        }
+                    } else if (payload.eventType === 'UPDATE') {
+                        set({
+                            staffList: currentStaff.map(s =>
+                                s.id === payload.new.id ? { ...s, ...payload.new } : s
+                            )
+                        });
+                    } else if (payload.eventType === 'DELETE') {
+                        set({
+                            staffList: currentStaff.filter(s => s.id !== payload.old.id)
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        set({ isSubscribed: true });
+    },
+
+    unsubscribeFromStaff: () => {
+        if (realtimeSubscription) {
+            const supabase = createClient();
+            supabase.removeChannel(realtimeSubscription);
+            realtimeSubscription = null;
+        }
+        set({ isSubscribed: false });
+    }
+}))

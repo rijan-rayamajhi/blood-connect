@@ -1,4 +1,5 @@
 
+/** Supabase Database Types */
 export type UserRole = 'admin' | 'hospital' | 'blood-bank'
 export type OrgType = 'hospital' | 'blood-bank'
 export type OrgStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
@@ -213,6 +214,41 @@ export interface Database {
             soundEnabled: boolean
             autoDismissSeconds: number | null
           }>
+        }
+      }
+      staff: {
+        Row: {
+          id: string
+          organization_id: string
+          name: string
+          email: string
+          phone: string | null
+          role: 'Admin' | 'Inventory Manager' | 'Request Handler' | 'Viewer'
+          status: 'Active' | 'Offline'
+          last_active: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          name: string
+          email: string
+          phone?: string | null
+          role: 'Admin' | 'Inventory Manager' | 'Request Handler' | 'Viewer'
+          status?: 'Active' | 'Offline'
+          last_active?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          organization_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          role?: 'Admin' | 'Inventory Manager' | 'Request Handler' | 'Viewer'
+          status?: 'Active' | 'Offline'
+          last_active?: string | null
         }
       }
     }

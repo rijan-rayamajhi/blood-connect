@@ -70,10 +70,10 @@ export const columns: ColumnDef<Staff>[] = [
         },
     },
     {
-        accessorKey: "lastActive",
+        accessorKey: "last_active",
         header: "Last Active",
         cell: ({ row }) => {
-            const date = new Date(row.getValue("lastActive"))
+            const date = new Date(row.getValue("last_active"))
             return <div className="text-muted-foreground text-sm">{date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
         }
     },

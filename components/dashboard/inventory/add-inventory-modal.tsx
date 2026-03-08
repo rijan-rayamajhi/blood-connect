@@ -7,6 +7,7 @@ import * as z from "zod"
 import { Plus } from "lucide-react"
 import { useInventoryStore } from "@/lib/store/inventory-store"
 import { useMasterDataStore } from "@/lib/store/master-data-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -59,6 +60,12 @@ export function AddInventoryModal() {
     const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
     const componentTypes = useMasterDataStore((s) => s.componentTypes)
 
+    // Role Check
+    const { user } = useAuthStore()
+    // For now assuming actual user role exists or we map to it
+    const canManageInventory = user?.role === 'admin'
+    // If we want to check staff store role, we'd need that context.
+
     const form = useForm<FormValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(formSchema) as any,
@@ -92,6 +99,8 @@ export function AddInventoryModal() {
             setIsSubmitting(false)
         }
     }
+
+    if (!canManageInventory) return null
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

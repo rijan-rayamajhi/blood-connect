@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { UserPlus } from "lucide-react"
+import { useAuthStore } from "@/lib/store/auth-store"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -48,6 +49,9 @@ type FormValues = z.infer<typeof formSchema>
 export function AddStaffModal() {
     const [open, setOpen] = useState(false)
     const addStaff = useStaffStore((state) => state.addStaff)
+    const { user } = useAuthStore()
+
+    const canManageStaff = user?.role === 'admin' || user?.staffRole === 'Admin'
 
     const form = useForm<FormValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,6 +74,8 @@ export function AddStaffModal() {
         setOpen(false)
         form.reset()
     }
+
+    if (!canManageStaff) return null
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

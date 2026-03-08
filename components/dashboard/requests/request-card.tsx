@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BloodRequest, useRequestStore } from "@/lib/store/request-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { Calendar, Droplets, Clock } from "lucide-react"
 import { getStatusBadgeVariant, formatRequestStatus } from "@/lib/utils/request-status-map"
 
@@ -12,6 +13,11 @@ interface RequestCardProps {
 
 export function RequestCard({ request, isHospitalView = false }: RequestCardProps) {
     const updateStatus = useRequestStore((state) => state.updateRequestStatus)
+    const { user } = useAuthStore()
+
+    const canHandleRequests = user?.role === 'admin' ||
+        user?.staffRole === 'Admin' ||
+        user?.staffRole === 'Request Handler'
 
     const urgencyColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
         "critical": "destructive",
@@ -57,7 +63,7 @@ export function RequestCard({ request, isHospitalView = false }: RequestCardProp
                     {formatRequestStatus(request.status)}
                 </Badge>
 
-                {request.status === 'sent' && !isHospitalView && (
+                {request.status === 'sent' && !isHospitalView && canHandleRequests && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="destructive"
@@ -85,7 +91,7 @@ export function RequestCard({ request, isHospitalView = false }: RequestCardProp
                         </Button>
                     </div>
                 )}
-                {request.status === 'accepted' && !isHospitalView && (
+                {request.status === 'accepted' && !isHospitalView && canHandleRequests && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="outline"

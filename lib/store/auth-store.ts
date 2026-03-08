@@ -11,6 +11,7 @@ export interface User {
     email: string
     role: UserRole
     organizationId?: string | null
+    staffRole?: 'Admin' | 'Inventory Manager' | 'Request Handler' | 'Viewer'
 }
 
 interface AuthState {
@@ -43,6 +44,7 @@ function profileToUser(profile: AuthProfile): User {
         email: profile.email,
         role: profile.role,
         organizationId: profile.organizationId,
+        staffRole: profile.staffRole,
     }
 }
 

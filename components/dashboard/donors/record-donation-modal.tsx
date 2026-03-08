@@ -75,7 +75,7 @@ export function RecordDonationModal({ donor, asDropdownItem = false }: { donor: 
             toast.success("Donation recorded successfully")
             setOpen(false)
             form.reset()
-        } catch (error) {
+        } catch {
             toast.error("Failed to record donation")
         } finally {
             setIsLoading(false)

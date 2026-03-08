@@ -15,6 +15,7 @@ import {
 
 import { useState } from "react"
 import { InventoryItem, useInventoryStore } from "@/lib/store/inventory-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { getInventoryBadgeVariant, getInventoryBadgeClass } from "@/lib/utils/inventory-status-map"
 import { getRecommendedFIFOUnit } from "@/lib/utils/fifo-hook"
 
@@ -127,6 +128,11 @@ import { Trash2, Edit, Eye, Copy } from "lucide-react"
 function ActionCell({ item }: { item: InventoryItem }) {
     const deleteItem = useInventoryStore((state) => state.deleteItem)
     const [isDeleting, setIsDeleting] = useState(false)
+    const { user } = useAuthStore()
+
+    const canManageInventory = user?.role === 'admin' ||
+        user?.staffRole === 'Admin' ||
+        user?.staffRole === 'Inventory Manager'
 
     const handleDelete = async () => {
         setIsDeleting(true)
@@ -164,19 +170,24 @@ function ActionCell({ item }: { item: InventoryItem }) {
                     <Eye className="mr-2 h-4 w-4" />
                     View details
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit unit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {isDeleting ? "Deleting..." : "Delete unit"}
-                </DropdownMenuItem>
+
+                {canManageInventory && (
+                    <>
+                        <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit unit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {isDeleting ? "Deleting..." : "Delete unit"}
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     )

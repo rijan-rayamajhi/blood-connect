@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter } from "lucide-react"
 import { useStaffStore } from "@/lib/store/staff-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { columns } from "@/components/dashboard/staff/columns"
 import { AddStaffModal } from "@/components/dashboard/staff/add-staff-modal"
 import { DataTable } from "@/components/ui/data-table"
@@ -22,9 +23,26 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { StaffActions } from "@/components/dashboard/staff/staff-actions"
 
 export default function StaffPage() {
-    const staffList = useStaffStore((state) => state.staffList)
+    const {
+        staffList,
+        fetchStaff,
+        subscribeToStaff,
+        unsubscribeFromStaff,
+        isLoading
+    } = useStaffStore()
+    const { user } = useAuthStore()
     const [filterValue, setFilterValue] = useState("")
     const [roleFilter, setRoleFilter] = useState("All")
+
+    useEffect(() => {
+        fetchStaff()
+        if (user?.organizationId) {
+            subscribeToStaff(user.organizationId)
+        }
+        return () => {
+            unsubscribeFromStaff()
+        }
+    }, [fetchStaff, subscribeToStaff, unsubscribeFromStaff, user?.organizationId])
 
     const filteredStaff = staffList.filter((staff) => {
         const matchesSearch = staff.name.toLowerCase().includes(filterValue.toLowerCase()) ||
@@ -120,7 +138,7 @@ export default function StaffPage() {
                             </div>
 
                             <div className="text-sm text-muted-foreground pt-1">
-                                Last Active: <span className="text-foreground">{new Date(staff.lastActive).toLocaleDateString()}</span>
+                                Last Active: <span className="text-foreground">{staff.last_active ? new Date(staff.last_active).toLocaleDateString() : 'Never'}</span>
                             </div>
 
                             <div className="flex gap-4 pt-2 border-t mt-2">
@@ -137,6 +155,11 @@ export default function StaffPage() {
                     </Card>
                 ))}
             </div>
+            {isLoading && (
+                <div className="text-center py-4 text-muted-foreground">
+                    Loading staff...
+                </div>
+            )}
         </div>
     )
 }

@@ -50,7 +50,6 @@ export async function GET(request: Request) {
             query = query.eq('status', status)
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: qData, error: qError } = await query
 
         if (qError) {
@@ -114,7 +113,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'No organization associated' }, { status: 400 })
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await supabase
             .from('donors')
             .insert({

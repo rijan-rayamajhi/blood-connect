@@ -9,6 +9,7 @@ export interface AuthProfile {
     name: string
     role: UserRole
     organizationId: string | null
+    staffRole?: 'Admin' | 'Inventory Manager' | 'Request Handler' | 'Viewer'
 }
 
 export interface SignUpInput {
@@ -209,12 +210,28 @@ async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<A
 
     if (!data) return null
 
+    let staffRole: AuthProfile['staffRole'] | undefined = undefined
+
+    if (data.role === 'blood-bank' && data.organization_id) {
+        const { data: staff } = await supabase
+            .from('staff')
+            .select('role')
+            .eq('email', data.email)
+            .eq('organization_id', data.organization_id)
+            .maybeSingle<{ role: string }>()
+
+        if (staff) {
+            staffRole = staff.role as AuthProfile['staffRole']
+        }
+    }
+
     return {
         id: data.id,
         email: data.email,
         name: data.name,
         role: data.role,
         organizationId: data.organization_id,
+        staffRole
     }
 }
 

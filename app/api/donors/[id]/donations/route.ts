@@ -106,7 +106,6 @@ export async function POST(
         const donor = donorResult as any;
 
         // Insert donation
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: donationResult, error: insertError } = await supabase
             .from('donor_donations')
             .insert({
@@ -129,7 +128,6 @@ export async function POST(
         // Check if this donation date is the latest one
         const isLatest = !donor.last_donation_date || new Date(donationDate) >= new Date(donor.last_donation_date);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await supabase
             .from('donors')
             .update({
@@ -153,7 +151,7 @@ export async function POST(
         }
 
         return NextResponse.json({ success: true, data: item }, { status: 201 })
-    } catch (e: unknown) {
+    } catch {
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
     }
 }
