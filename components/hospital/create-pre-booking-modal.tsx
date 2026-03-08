@@ -4,6 +4,7 @@ import { useMasterDataStore } from "@/lib/store/master-data-store"
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect } from "react"
 import * as z from "zod"
 import {
     Dialog,
@@ -30,6 +31,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { CalendarClock, Droplets } from "lucide-react"
 
 // Zod schema for pre-booking form validation
@@ -39,6 +41,7 @@ const preBookingSchema = z.object({
     quantity: z.number().min(1, "Quantity must be at least 1 unit."),
     scheduledDate: z.string().min(1, "Scheduled date and time is required."),
     notes: z.string().max(500, "Notes cannot exceed 500 characters.").optional(),
+    autoConvert: z.boolean(),
 })
 
 export type PreBookingFormValues = z.infer<typeof preBookingSchema>
@@ -47,9 +50,12 @@ interface CreatePreBookingModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSubmit: (data: PreBookingFormValues) => void
+    isLoading?: boolean
+    initialValues?: Partial<PreBookingFormValues>
+    mode?: "create" | "edit"
 }
 
-export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePreBookingModalProps) {
+export function CreatePreBookingModal({ open, onOpenChange, onSubmit, isLoading = false, initialValues, mode = "create" }: CreatePreBookingModalProps) {
     const bloodGroups = useMasterDataStore((s) => s.bloodGroups)
     const componentTypes = useMasterDataStore((s) => s.componentTypes)
     // Initialize form
@@ -61,30 +67,48 @@ export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePr
             quantity: 1,
             scheduledDate: "",
             notes: "",
+            autoConvert: false,
         },
     })
 
+    // When editing, populate form with initial values
+    useEffect(() => {
+        if (open && initialValues) {
+            form.reset({
+                bloodGroup: initialValues.bloodGroup ?? "",
+                componentType: initialValues.componentType ?? "",
+                quantity: initialValues.quantity ?? 1,
+                scheduledDate: initialValues.scheduledDate ?? "",
+                notes: initialValues.notes ?? "",
+                autoConvert: initialValues.autoConvert ?? false,
+            })
+        } else if (open && mode === "create") {
+            form.reset({ bloodGroup: "", componentType: "", quantity: 1, scheduledDate: "", notes: "", autoConvert: false })
+        }
+    }, [open, initialValues, mode, form])
+
     const handleSubmit = (data: PreBookingFormValues) => {
         onSubmit(data)
-        // Reset form after successful submission
-        form.reset()
+        // Do NOT reset here — parent controls the modal close on success
     }
 
     return (
         <Dialog open={open} onOpenChange={(newOpen) => {
-            onOpenChange(newOpen)
-            if (!newOpen) {
-                form.reset() // Reset form when modal is closed without submitting
+            if (!isLoading) {
+                onOpenChange(newOpen)
+                if (!newOpen) {
+                    form.reset()
+                }
             }
         }}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <CalendarClock className="h-5 w-5 text-primary" />
-                        Create Pre-Booking
+                        {mode === "edit" ? "Edit Pre-Booking" : "Create Pre-Booking"}
                     </DialogTitle>
                     <DialogDescription>
-                        Schedule a future blood delivery requirement.
+                        {mode === "edit" ? "Update your scheduled blood delivery requirement." : "Schedule a future blood delivery requirement."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -204,17 +228,40 @@ export function CreatePreBookingModal({ open, onOpenChange, onSubmit }: CreatePr
                             )}
                         />
 
+                        {/* Auto-Convert Toggle */}
+                        <FormField
+                            control={form.control}
+                            name="autoConvert"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-sm font-medium">Auto-Convert to Request</FormLabel>
+                                        <p className="text-xs text-muted-foreground">
+                                            Automatically create a blood request when the scheduled date arrives.
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
                         {/* Actions */}
                         <div className="pt-4 flex justify-end gap-2 border-t mt-6">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => onOpenChange(false)}
+                                disabled={isLoading}
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit">
-                                Create Booking
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Saving..." : mode === "edit" ? "Save Changes" : "Create Booking"}
                             </Button>
                         </div>
                     </form>

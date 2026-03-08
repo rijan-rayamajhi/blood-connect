@@ -1,52 +1,135 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Calendar as CalendarIcon, Clock, AlertCircle, RefreshCw } from "lucide-react"
 import { PreBookingCard, PreBookingItem } from "@/components/hospital/prebooking-card"
 import { CreatePreBookingModal, PreBookingFormValues } from "@/components/hospital/create-pre-booking-modal"
 import { EmptyState } from "@/components/ui/empty-state"
-import { useState } from "react"
 import { toast } from "sonner"
+import { usePreBookingStore, PreBooking } from "@/lib/store/pre-booking-store"
+import { useAuthStore } from "@/lib/store/auth-store"
 
-// --- Mock Data ---
-const mockPreBookings: PreBookingItem[] = [
-    {
-        id: "PB-1001",
-        bloodGroup: "O+",
-        componentType: "Whole Blood",
-        quantity: 15,
-        scheduledDate: "Oct 24, 2024 - 10:00 AM",
-        status: "Upcoming"
-    },
-    {
-        id: "PB-1002",
-        bloodGroup: "A-",
-        componentType: "Packed RBC",
-        quantity: 5,
-        scheduledDate: "Oct 26, 2024 - 02:30 PM",
-        status: "Upcoming"
-    },
-    {
-        id: "PB-1003",
-        bloodGroup: "B+",
-        componentType: "Platelets",
-        quantity: 10,
-        scheduledDate: "Nov 02, 2024 - 09:15 AM",
-        status: "In Progress"
+// Convert a DB PreBooking to the card's PreBookingItem type
+function toCardItem(b: PreBooking): PreBookingItem {
+    return {
+        id: b.id,
+        bloodGroup: b.bloodGroup,
+        componentType: b.componentType,
+        quantity: b.quantity,
+        scheduledDate: b.scheduledDate,
+        status: b.status,
+        notes: b.notes,
+        autoConvert: b.autoConvert,
     }
-]
+}
+
+// Convert a DB ISO scheduled_date to the datetime-local input format
+function toDatetimeLocal(isoString: string): string {
+    try {
+        const d = new Date(isoString)
+        // Format: YYYY-MM-DDTHH:mm
+        const pad = (n: number) => String(n).padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    } catch {
+        return ''
+    }
+}
 
 export default function PreBookingPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [editingBooking, setEditingBooking] = useState<PreBooking | null>(null)
+    const [isSaving, setIsSaving] = useState(false)
 
-    const handleCreateSubmit = (data: PreBookingFormValues) => {
-        console.log("Pre-booking simulation data:", data)
-        toast.success("Pre-Booking Created", {
-            description: `Successfully scheduled ${data.quantity} units of ${data.bloodGroup} ${data.componentType}.`,
-            duration: 5000
-        })
-        setIsCreateModalOpen(false)
+    const user = useAuthStore((s) => s.user)
+    const { bookings, isLoading, fetchPreBookings, createPreBooking, updatePreBooking, cancelPreBooking, subscribeRealtime, unsubscribeRealtime } = usePreBookingStore()
+
+    useEffect(() => {
+        fetchPreBookings()
+
+        if (user?.organizationId) {
+            subscribeRealtime(user.organizationId)
+        }
+
+        return () => {
+            unsubscribeRealtime()
+        }
+    }, [user?.organizationId, fetchPreBookings, subscribeRealtime, unsubscribeRealtime])
+
+    // Split bookings into upcoming (scheduled) and history (fulfilled/cancelled)
+    const upcomingBookings = bookings.filter((b) => b.status === "scheduled")
+    const historyBookings = bookings.filter((b) => b.status !== "scheduled")
+
+    const handleCreateSubmit = async (data: PreBookingFormValues) => {
+        setIsSaving(true)
+        try {
+            await createPreBooking({
+                bloodGroup: data.bloodGroup,
+                componentType: data.componentType,
+                quantity: data.quantity,
+                scheduledDate: new Date(data.scheduledDate).toISOString(),
+                notes: data.notes || undefined,
+                autoConvert: data.autoConvert,
+            })
+            toast.success("Pre-Booking Created", {
+                description: `Scheduled ${data.quantity} units of ${data.bloodGroup} ${data.componentType}.`,
+                duration: 5000,
+            })
+            setIsCreateModalOpen(false)
+        } catch (err) {
+            toast.error("Failed to create pre-booking", {
+                description: err instanceof Error ? err.message : "An error occurred.",
+            })
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const handleEditSubmit = async (data: PreBookingFormValues) => {
+        if (!editingBooking) return
+        setIsSaving(true)
+        try {
+            await updatePreBooking(editingBooking.id, {
+                bloodGroup: data.bloodGroup,
+                componentType: data.componentType,
+                quantity: data.quantity,
+                scheduledDate: new Date(data.scheduledDate).toISOString(),
+                notes: data.notes ?? undefined,
+                autoConvert: data.autoConvert,
+            })
+            toast.success("Pre-Booking Updated", {
+                description: `Booking for ${data.bloodGroup} ${data.componentType} has been updated.`,
+                duration: 4000,
+            })
+            setEditingBooking(null)
+        } catch (err) {
+            toast.error("Failed to update pre-booking", {
+                description: err instanceof Error ? err.message : "An error occurred.",
+            })
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const handleCancel = async (id: string) => {
+        try {
+            await cancelPreBooking(id)
+            toast.success("Pre-Booking Cancelled", {
+                description: "The booking has been cancelled.",
+                duration: 4000,
+            })
+        } catch (err) {
+            toast.error("Failed to cancel pre-booking", {
+                description: err instanceof Error ? err.message : "An error occurred.",
+            })
+        }
+    }
+
+    const handleEdit = (booking: PreBookingItem) => {
+        const full = bookings.find((b) => b.id === booking.id)
+        if (full) setEditingBooking(full)
     }
 
     return (
@@ -60,30 +143,51 @@ export default function PreBookingPage() {
                     </p>
                 </div>
 
-                {/* Primary Action Button */}
-                <Button className="w-full sm:w-auto" onClick={() => setIsCreateModalOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Pre-Booking
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchPreBookings()}
+                        disabled={isLoading}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                    <Button className="flex-1 sm:flex-none" onClick={() => setIsCreateModalOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Pre-Booking
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Scheduled Requests List */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="h-full min-h-[400px]">
+                    {/* Upcoming */}
+                    <Card className="min-h-[400px]">
                         <CardHeader>
-                            <CardTitle>Upcoming Scheduled Requests</CardTitle>
-                            <CardDescription>Your confirmed future deliveries</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle>Upcoming Scheduled Requests</CardTitle>
+                                    <CardDescription>Your confirmed future deliveries</CardDescription>
+                                </div>
+                                {upcomingBookings.length > 0 && (
+                                    <Badge variant="default">{upcomingBookings.length}</Badge>
+                                )}
+                            </div>
                         </CardHeader>
-                        <CardContent className={mockPreBookings.length > 0 ? "p-4 sm:p-6" : "p-6"}>
-                            {mockPreBookings.length > 0 ? (
+                        <CardContent className={upcomingBookings.length > 0 ? "p-4 sm:p-6 pt-0" : "p-6"}>
+                            {isLoading ? (
+                                <div className="flex items-center justify-center h-[250px]">
+                                    <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                                </div>
+                            ) : upcomingBookings.length > 0 ? (
                                 <div className="flex flex-col gap-4">
-                                    {mockPreBookings.map((booking) => (
+                                    {upcomingBookings.map((booking) => (
                                         <PreBookingCard
                                             key={booking.id}
-                                            booking={booking}
-                                            onEdit={(id) => console.log("Edit booking", id)}
-                                            onCancel={(id) => console.log("Cancel booking", id)}
+                                            booking={toCardItem(booking)}
+                                            onEdit={handleEdit}
+                                            onCancel={handleCancel}
                                         />
                                     ))}
                                 </div>
@@ -100,6 +204,26 @@ export default function PreBookingPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* History */}
+                    {historyBookings.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Booking History</CardTitle>
+                                <CardDescription>Fulfilled and cancelled bookings</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-4 sm:p-6 pt-0">
+                                <div className="flex flex-col gap-4">
+                                    {historyBookings.map((booking) => (
+                                        <PreBookingCard
+                                            key={booking.id}
+                                            booking={toCardItem(booking)}
+                                        />
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Right Column: Calendar Placeholder */}
@@ -126,10 +250,30 @@ export default function PreBookingPage() {
                 </div>
             </div>
 
+            {/* Create Modal */}
             <CreatePreBookingModal
                 open={isCreateModalOpen}
                 onOpenChange={setIsCreateModalOpen}
                 onSubmit={handleCreateSubmit}
+                isLoading={isSaving}
+                mode="create"
+            />
+
+            {/* Edit Modal */}
+            <CreatePreBookingModal
+                open={!!editingBooking}
+                onOpenChange={(open) => { if (!open) setEditingBooking(null) }}
+                onSubmit={handleEditSubmit}
+                isLoading={isSaving}
+                mode="edit"
+                initialValues={editingBooking ? {
+                    bloodGroup: editingBooking.bloodGroup,
+                    componentType: editingBooking.componentType,
+                    quantity: editingBooking.quantity,
+                    scheduledDate: toDatetimeLocal(editingBooking.scheduledDate),
+                    notes: editingBooking.notes ?? "",
+                    autoConvert: editingBooking.autoConvert,
+                } : undefined}
             />
         </div>
     )
