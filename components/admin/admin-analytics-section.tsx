@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,21 +23,24 @@ import {
 } from "recharts"
 import { useRequestStore } from "@/lib/store/request-store"
 import { useInventoryStore } from "@/lib/store/inventory-store"
+import { useAdminAnalyticsStore } from "@/lib/store/admin-analytics-store"
 import { exportToCSV, reportFilename } from "@/lib/utils/export-csv"
-
-// ── Mock regional data ──────────────────────────────────────────────────────
-
-const demandVsSupplyData = [
-    { region: "North", demand: 320, supply: 280 },
-    { region: "South", demand: 410, supply: 390 },
-    { region: "East", demand: 180, supply: 200 },
-    { region: "West", demand: 290, supply: 250 },
-    { region: "Central", demand: 350, supply: 340 },
-]
 
 export function AdminAnalyticsSection() {
     const requests = useRequestStore((s) => s.requests)
     const items = useInventoryStore((s) => s.items)
+    const { supplyDemand, fetchMetrics } = useAdminAnalyticsStore()
+
+    React.useEffect(() => {
+        fetchMetrics()
+    }, [fetchMetrics])
+
+    // Format for Recharts
+    const chartData = supplyDemand.map((d: Record<string, unknown>) => ({
+        region: d.blood_group as string,
+        demand: (d.total_demand as number) || 0,
+        supply: (d.total_supply as number) || 0
+    }))
 
     // ── KPIs ──────────────────────────────────────────────────────────────
     const totalDemand = requests.length
@@ -86,11 +90,11 @@ export function AdminAnalyticsSection() {
                 Metric: "Avg Emergency Response (min)",
                 Value: avgResponseMinutes,
             },
-            ...demandVsSupplyData.map((d) => ({
+            ...chartData.map((d) => ({
                 Metric: `${d.region} Demand`,
                 Value: d.demand,
             })),
-            ...demandVsSupplyData.map((d) => ({
+            ...chartData.map((d) => ({
                 Metric: `${d.region} Supply`,
                 Value: d.supply,
             })),
@@ -145,13 +149,13 @@ export function AdminAnalyticsSection() {
             {/* Regional Demand vs Supply Chart */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Regional Demand vs Supply</CardTitle>
-                    <CardDescription>Comparison of total requests vs available inventory by region</CardDescription>
+                    <CardTitle>Blood Group Demand vs Supply</CardTitle>
+                    <CardDescription>Comparison of total requests vs available inventory by blood group</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={demandVsSupplyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
                                 <XAxis dataKey="region" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} />

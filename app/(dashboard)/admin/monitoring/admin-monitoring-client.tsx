@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRequestStore } from "@/lib/store/request-store"
 import { useSystemConfigStore } from "@/lib/store/system-config-store"
+import { useAdminAnalyticsStore } from "@/lib/store/admin-analytics-store"
 import { useShallow } from "zustand/react/shallow"
 import { RequestStatus, RequestUrgency } from "@/types/request"
 import {
@@ -98,7 +99,11 @@ export function AdminMonitoringClient() {
         adminEscalateRequest: state.adminEscalateRequest
     })))
 
+    const { fetchMetrics } = useAdminAnalyticsStore()
 
+    React.useEffect(() => {
+        fetchMetrics()
+    }, [fetchMetrics])
 
     const { config } = useSystemConfigStore(useShallow(state => ({
         config: state.config

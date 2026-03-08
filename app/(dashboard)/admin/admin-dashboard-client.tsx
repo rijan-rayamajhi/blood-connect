@@ -1,11 +1,18 @@
 "use client"
 
+import * as React from "react"
 import { useAdminMetrics } from "@/lib/store/admin-selectors"
+import { useAdminAnalyticsStore } from "@/lib/store/admin-analytics-store"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Activity, AlertTriangle, Building, Clock, Users } from "lucide-react"
 
 export function AdminDashboardClient() {
     const metrics = useAdminMetrics()
+    const { fetchMetrics } = useAdminAnalyticsStore()
+
+    React.useEffect(() => {
+        fetchMetrics()
+    }, [fetchMetrics])
 
     const getHealthColor = (score: number) => {
         if (score >= 80) return "text-green-500"
