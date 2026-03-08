@@ -14,4 +14,5 @@ export interface AppNotification {
     status: NotificationStatus
     autoClose?: boolean
     duration?: number
+    metadata?: Record<string, unknown>
 }

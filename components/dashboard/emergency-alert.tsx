@@ -17,7 +17,10 @@ function formatTime(seconds: number): string {
     return `${mins}:${secs.toString().padStart(2, "0")}`
 }
 
-function calcRemaining(createdAt: number, slaSeconds: number): number {
+function calcRemaining(createdAt: number, slaSeconds: number, deadline?: string): number {
+    if (deadline && !isNaN(Date.parse(deadline))) {
+        return (new Date(deadline).getTime() - Date.now()) / 1000
+    }
     return slaSeconds - (Date.now() - createdAt) / 1000
 }
 
@@ -72,11 +75,11 @@ interface AlertOverlayProps {
 function AlertOverlay({ notification, siblingCount, slaSeconds }: AlertOverlayProps) {
     // Shallow-select only the actions we need so this component doesn't
     // re-render when unrelated store slices change.
-    const { acknowledgeNotification, removeNotification, markAsRead } =
+    const { acknowledgeNotification, removeRealtimeNotification, markAsRead } =
         useNotificationStore(
             useShallow((state) => ({
                 acknowledgeNotification: state.acknowledgeNotification,
-                removeNotification: state.removeNotification,
+                removeRealtimeNotification: state.removeRealtimeNotification,
                 markAsRead: state.markAsRead,
             }))
         )
@@ -93,7 +96,13 @@ function AlertOverlay({ notification, siblingCount, slaSeconds }: AlertOverlayPr
         return () => clearInterval(id)
     }, []) // intentionally empty — we only want one stable interval per mount
 
-    const remaining = calcRemaining(notification.createdAt, slaSeconds)
+    // Extract deadline from metadata if available
+    const deadline = (notification.metadata && typeof notification.metadata === 'object' && 'response_deadline' in notification.metadata)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? (notification.metadata as any).response_deadline
+        : undefined;
+
+    const remaining = calcRemaining(notification.createdAt, slaSeconds, deadline)
 
     // Auto-mark as read once SLA expires (fires at most once per notification).
     useEffect(() => {
@@ -110,8 +119,8 @@ function AlertOverlay({ notification, siblingCount, slaSeconds }: AlertOverlayPr
 
     const handleAcceptAndDispatch = useCallback(() => {
         acknowledgeNotification(notification.id)
-        removeNotification(notification.id)
-    }, [acknowledgeNotification, removeNotification, notification.id])
+        removeRealtimeNotification(notification.id)
+    }, [acknowledgeNotification, removeRealtimeNotification, notification.id])
 
     // Escape key → acknowledge (only dismisses the current notification).
     useEffect(() => {
