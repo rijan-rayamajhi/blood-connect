@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const supabase = await createClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -12,10 +12,23 @@ export async function GET() {
 
         // Fetch notifications handled by RLS (user_read_notifications policy)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
+        let query = (supabase as any)
             .from('notifications')
             .select('*')
-            .order('created_at', { ascending: false })
+
+        // Support optional filters
+        const url = new URL(request.url)
+        const statusStr = url.searchParams.get('status')
+        const priorityStr = url.searchParams.get('priority')
+
+        if (statusStr) {
+            query = query.eq('status', statusStr)
+        }
+        if (priorityStr) {
+            query = query.eq('priority', priorityStr)
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(100)
 
         if (error) {
             return NextResponse.json({ success: false, error: error.message }, { status: 500 })
@@ -61,9 +74,9 @@ export async function DELETE() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q = (supabase as any).from('notifications').delete()
         if (orgId) {
-            q = q.or(`user_id.eq.${user.id},organization_id.eq.${orgId}`)
+            q = q.or(`recipient_user_id.eq.${user.id},organization_id.eq.${orgId}`)
         } else {
-            q = q.eq('user_id', user.id)
+            q = q.eq('recipient_user_id', user.id)
         }
 
         const { error } = await q

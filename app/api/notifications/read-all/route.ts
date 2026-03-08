@@ -25,9 +25,9 @@ export async function PATCH() {
             .eq('status', 'unread')
 
         if (orgId) {
-            q = q.or(`user_id.eq.${user.id},organization_id.eq.${orgId}`)
+            q = q.or(`recipient_user_id.eq.${user.id},organization_id.eq.${orgId}`)
         } else {
-            q = q.eq('user_id', user.id)
+            q = q.eq('recipient_user_id', user.id)
         }
 
         const { error } = await q

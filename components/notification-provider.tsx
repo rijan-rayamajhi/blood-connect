@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 (payload) => {
                     // Check if it's for us
                     const row = payload.new
-                    if (row.user_id === user.id || row.organization_id === user.organizationId || user.role === 'admin') {
+                    if (row.recipient_user_id === user.id || row.organization_id === user.organizationId || user.role === 'admin') {
                         addRealtimeNotification(row)
                     }
                 }
@@ -44,7 +44,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 { event: 'UPDATE', schema: 'public', table: 'notifications' },
                 (payload) => {
                     const row = payload.new
-                    if (row.user_id === user.id || row.organization_id === user.organizationId || user.role === 'admin') {
+                    if (row.recipient_user_id === user.id || row.organization_id === user.organizationId || user.role === 'admin') {
                         updateRealtimeNotification(row.id, {
                             status: row.status
                         })
