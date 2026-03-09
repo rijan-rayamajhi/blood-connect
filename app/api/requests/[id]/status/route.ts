@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAuditEvent } from '@/lib/audit'
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
     try {
@@ -112,6 +113,17 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
                 }
             }
         }
+
+        await logAuditEvent({
+            action: 'UPDATE_REQUEST_STATUS',
+            actorId: user.id,
+            actorRole: profile.role,
+            targetId: id,
+            metadata: {
+                newStatus: status,
+                previousStatus: reqData.status
+            }
+        })
 
         return NextResponse.json({ success: true, data: updatedData })
     } catch {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { InventoryStatusDB } from '@/types/supabase'
+import { logAuditEvent } from '@/lib/audit'
 
 interface ProfileRow {
     organization_id: string | null
@@ -90,6 +91,14 @@ export async function PATCH(
             updatedAt: row.updated_at,
         }
 
+        await logAuditEvent({
+            action: 'UPDATE_INVENTORY',
+            actorId: user.id,
+            actorRole: profile.role,
+            targetId: id,
+            metadata: updateData
+        })
+
         return NextResponse.json({ success: true, data: item })
     } catch {
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
@@ -132,6 +141,13 @@ export async function DELETE(
         if (error) {
             return NextResponse.json({ success: false, error: error.message }, { status: 500 })
         }
+
+        await logAuditEvent({
+            action: 'DELETE_INVENTORY',
+            actorId: user.id,
+            actorRole: profile.role,
+            targetId: id,
+        })
 
         return NextResponse.json({ success: true })
     } catch {

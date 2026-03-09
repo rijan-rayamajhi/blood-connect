@@ -16,7 +16,9 @@ import {
     MoreVertical,
     Edit2,
     Ban,
-    Zap
+    Zap,
+    Download,
+    ChevronDown
 } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -223,6 +225,24 @@ export function AdminMonitoringClient() {
 
     return (
         <div className="space-y-4">
+            <div className="flex justify-end">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                            <Download className="h-4 w-4" />
+                            Export System Reports
+                            <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => window.location.href = '/api/reports/inventory?format=csv'}>System Inventory Report</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.location.href = '/api/reports/requests?format=csv'}>System Requests Report</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.location.href = '/api/reports/donors?format=csv'}>System Donors Report</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.location.href = '/api/reports/hospital-consumption?format=csv'}>Regional Demand vs Supply</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/30 rounded-lg border">
                 <div className="flex-1 relative">

@@ -15,7 +15,13 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card"
-import { Calendar, Download, FileText, Percent, AlertTriangle } from "lucide-react"
+import { Calendar, Download, FileText, Percent, AlertTriangle, ChevronDown } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
     BarChart,
     Bar,
@@ -28,7 +34,6 @@ import {
     Legend,
     ResponsiveContainer,
 } from "recharts"
-import { exportToCSV, reportFilename } from "@/lib/utils/export-csv"
 import { useInventoryStore } from "@/lib/store/inventory-store"
 import { useRequestStore } from "@/lib/store/request-store"
 
@@ -74,19 +79,8 @@ export default function ReportsPage() {
     // ── Hospital-wise demand (from request store) ────────────────────────────
 
     // ── Export handlers ──────────────────────────────────────────────────────
-    function handleExportCSV() {
-        const rows = requests.map((r) => ({
-            ID: r.id,
-            Hospital: r.hospitalName,
-            BloodGroup: r.bloodGroup,
-            Component: r.componentType,
-            Quantity: r.quantity,
-            Urgency: r.urgency,
-            Status: r.status,
-            RequestDate: r.requestDate,
-            RequiredDate: r.requiredDate,
-        }))
-        exportToCSV(reportFilename("report"), rows)
+    function handleExportCSV(reportType: 'inventory' | 'requests' | 'donors') {
+        window.location.href = `/api/reports/${reportType}?format=csv`
     }
 
     function handleExportPDF() {
@@ -112,10 +106,26 @@ export default function ReportsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="outline" size="sm" className="gap-2" onClick={handleExportCSV} aria-label="Export CSV report">
-                        <Download className="h-4 w-4" />
-                        Export CSV
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2" aria-label="Export CSV report">
+                                <Download className="h-4 w-4" />
+                                Export CSV
+                                <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExportCSV('inventory')}>
+                                Inventory Report
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportCSV('requests')}>
+                                Requests Report
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportCSV('donors')}>
+                                Donors Report
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" size="sm" className="gap-2" onClick={handleExportPDF} aria-label="Export PDF report">
                         <FileText className="h-4 w-4" />
                         Export PDF

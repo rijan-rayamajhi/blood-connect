@@ -31,20 +31,12 @@ import {
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Button } from "@/components/ui/button"
 import { Clock, CheckCircle2, FileText, Download } from "lucide-react"
-import { exportToCSV, reportFilename } from "@/lib/utils/export-csv"
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
+import { useState, useEffect } from "react"
 
-const consumptionData = [
-    { month: "Jan", requests: 45, fulfilled: 42 },
-    { month: "Feb", requests: 52, fulfilled: 48 },
-    { month: "Mar", requests: 38, fulfilled: 35 },
-    { month: "Apr", requests: 65, fulfilled: 60 },
-    { month: "May", requests: 48, fulfilled: 45 },
-    { month: "Jun", requests: 55, fulfilled: 50 },
-    { month: "Jul", requests: 70, fulfilled: 68 },
-]
+// ── Mock Data (Remaining) ────────────────────────────────────────────────────
 
+// The following are still mocked as the backend RPC primarily provides blood group consumption
 const fulfillmentTimeData = [
     { urgency: "Critical", timeMinutes: 90 },
     { urgency: "Moderate", timeMinutes: 252 },
@@ -71,22 +63,54 @@ const avgFulfillmentMinutes = Math.round(
     fulfillmentTimeData.reduce((sum, d) => sum + d.timeMinutes, 0) / fulfillmentTimeData.length
 )
 
-const totalRequests = consumptionData.reduce((s, d) => s + d.requests, 0)
-const totalFulfilled = consumptionData.reduce((s, d) => s + d.fulfilled, 0)
-const successRate = totalRequests > 0 ? ((totalFulfilled / totalRequests) * 100).toFixed(1) : "0"
-const latestMonthRequests = consumptionData[consumptionData.length - 1]?.requests ?? 0
-
 // ── Component ────────────────────────────────────────────────────────────────
 
+interface ConsumptionData {
+    bloodGroup: string
+    requests: number
+    fulfilled: number
+    rate: number
+}
+
+interface RawConsumptionData {
+    blood_group: string
+    total_units_requested: string | number
+    total_units_received: string | number
+    fulfillment_rate: string | number
+}
+
 export default function HospitalAnalyticsPage() {
+    const [consumptionData, setConsumptionData] = useState<ConsumptionData[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                const res = await fetch('/api/reports/hospital-consumption')
+                const json = await res.json()
+                if (json.success && json.data) {
+                    setConsumptionData(json.data.map((d: RawConsumptionData) => ({
+                        bloodGroup: d.blood_group,
+                        requests: Number(d.total_units_requested),
+                        fulfilled: Number(d.total_units_received),
+                        rate: Number(d.fulfillment_rate)
+                    })))
+                }
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchAnalytics()
+    }, [])
+
+    const totalRequests = consumptionData.reduce((s, d) => s + d.requests, 0)
+    const totalFulfilled = consumptionData.reduce((s, d) => s + d.fulfilled, 0)
+    const successRate = totalRequests > 0 ? ((totalFulfilled / totalRequests) * 100).toFixed(1) : "0"
+
     function handleExportCSV() {
-        const rows = consumptionData.map((d) => ({
-            Month: d.month,
-            Requests: d.requests,
-            Fulfilled: d.fulfilled,
-            Rate: totalRequests > 0 ? ((d.fulfilled / d.requests) * 100).toFixed(1) + "%" : "0%",
-        }))
-        exportToCSV(reportFilename("hospital-analytics"), rows)
+        window.location.href = '/api/reports/hospital-consumption?format=csv'
     }
 
     return (
@@ -121,11 +145,11 @@ export default function HospitalAnalyticsPage() {
                     trendLabel="vs last month"
                 />
                 <KpiCard
-                    title="Total Requests (Month)"
-                    value={latestMonthRequests}
+                    title="Total Requests (Period)"
+                    value={totalRequests}
                     icon={FileText}
-                    trend={15.3}
-                    trendLabel="vs last month"
+                    trend={0}
+                    trendLabel="vs last period"
                 />
             </div>
 
@@ -134,23 +158,27 @@ export default function HospitalAnalyticsPage() {
                 {/* Monthly Consumption (Bar Chart) */}
                 <Card className="col-span-1 lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Monthly Blood Consumption</CardTitle>
-                        <CardDescription>Units requested vs units successfully fulfilled</CardDescription>
+                        <CardTitle>Blood Group Consumption</CardTitle>
+                        <CardDescription>Units requested vs units successfully fulfilled by blood group</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[350px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={consumptionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
-                                    <XAxis dataKey="month" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
-                                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                    <Legend />
-                                    <Bar dataKey="requests" name="Total Requests" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
-                                    <Bar dataKey="fulfilled" name="Fulfilled Units" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                        {loading ? (
+                            <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">Loading...</div>
+                        ) : (
+                            <div className="h-[350px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={consumptionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                                        <XAxis dataKey="bloodGroup" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                        <Legend />
+                                        <Bar dataKey="requests" name="Total Requests" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="fulfilled" name="Fulfilled Units" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

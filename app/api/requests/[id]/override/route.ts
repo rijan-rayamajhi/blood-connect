@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAuditEvent } from '@/lib/audit'
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
     try {
@@ -45,6 +46,17 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         if (updateError) {
             return NextResponse.json({ success: false, error: updateError.message }, { status: 500 })
         }
+
+        await logAuditEvent({
+            action: 'ADMIN_OVERRIDE_REQUEST',
+            actorId: user.id,
+            actorRole: profile.role,
+            targetId: id,
+            metadata: {
+                reason: reason,
+                newStatus: status
+            }
+        })
 
         return NextResponse.json({ success: true, data: updatedData })
     } catch {

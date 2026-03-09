@@ -1,4 +1,5 @@
-
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { withSentryConfig } = require("@sentry/nextjs");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const withPWA = require("next-pwa")({
     dest: "public",
@@ -13,4 +14,13 @@ const nextConfig = {
     // Add other config options here
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = withSentryConfig(
+    withPWA(nextConfig),
+    {
+        org: process.env.SENTRY_ORG || "bloodconnect",
+        project: process.env.SENTRY_PROJECT || "bloodconnect",
+        silent: !process.env.CI,
+        widenClientFileUpload: true,
+        hideSourceMaps: true,
+    }
+);

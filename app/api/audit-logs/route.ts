@@ -44,3 +44,38 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Failed to fetch audit logs" }, { status: 500 })
     }
 }
+
+export async function POST(request: Request) {
+    try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const body = await request.json()
+        const { action } = body
+
+        if (action === 'LOGIN' || action === 'LOGOUT') {
+            await supabase.from('audit_events').insert({
+                action,
+                actor_id: user.id,
+                actor_role: profile?.role || 'user',
+                metadata: {
+                    ip: request.headers.get('x-forwarded-for') || 'unknown'
+                }
+            })
+            return NextResponse.json({ success: true })
+        }
+
+        return NextResponse.json({ success: false, error: 'Invalid action payload' }, { status: 400 })
+    } catch {
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+    }
+}

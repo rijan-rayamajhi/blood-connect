@@ -14,6 +14,17 @@ interface BloodBankQueryResult {
     }[] | null
 }
 
+import { z } from 'zod'
+
+const discoverQuerySchema = z.object({
+    lat: z.coerce.number(),
+    lng: z.coerce.number(),
+    radiusKm: z.coerce.number().optional().default(50.0),
+    bloodGroup: z.string().nullable().optional(),
+    quantity: z.coerce.number().nullable().optional(),
+    maxResponseTime: z.coerce.number().nullable().optional(),
+})
+
 export async function GET(request: Request) {
     try {
         const supabase = await createClient()
@@ -27,36 +38,23 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url)
 
-        // Extract parameters
-        const latParam = searchParams.get('lat')
-        const lngParam = searchParams.get('lng')
-        const radiusKmParam = searchParams.get('radiusKm')
-        const bloodGroup = searchParams.get('bloodGroup')
-        const quantityParam = searchParams.get('quantity')
-        const maxResponseTimeParam = searchParams.get('maxResponseTime')
+        const parsedQuery = discoverQuerySchema.safeParse({
+            lat: searchParams.get('lat'),
+            lng: searchParams.get('lng'),
+            radiusKm: searchParams.get('radiusKm') ?? undefined,
+            bloodGroup: searchParams.get('bloodGroup'),
+            quantity: searchParams.get('quantity'),
+            maxResponseTime: searchParams.get('maxResponseTime')
+        })
 
-        // Validate basic location parameters 
-        if (!latParam || !lngParam) {
+        if (!parsedQuery.success) {
             return NextResponse.json(
-                { success: false, error: 'Latitude and Longitude are required for discovery.' },
+                { success: false, error: parsedQuery.error.issues[0].message },
                 { status: 400 }
             )
         }
 
-        const lat = parseFloat(latParam)
-        const lng = parseFloat(lngParam)
-
-        if (isNaN(lat) || isNaN(lng)) {
-            return NextResponse.json(
-                { success: false, error: 'Invalid coordinate values.' },
-                { status: 400 }
-            )
-        }
-
-        // Use defaults or parse optionals
-        const radiusKm = radiusKmParam ? parseFloat(radiusKmParam) : 50.0 // Default 50km
-        const quantity = quantityParam ? parseInt(quantityParam, 10) : null
-        const maxResponseTime = maxResponseTimeParam ? parseInt(maxResponseTimeParam, 10) : null
+        const { lat, lng, radiusKm, bloodGroup, quantity, maxResponseTime } = parsedQuery.data
 
         // Call PostGIS RPC 'discover_blood_banks'
         // Using @ts-expect-error since we cannot generate types easily now, and we know our RPC schema

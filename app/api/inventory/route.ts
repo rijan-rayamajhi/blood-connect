@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { InventoryStatusDB } from '@/types/supabase'
+import { z } from 'zod'
+import { logAuditEvent } from '@/lib/audit'
 
 interface ProfileRow {
     organization_id: string | null
@@ -43,8 +45,22 @@ export async function GET(request: Request) {
         }
 
         const { searchParams } = new URL(request.url)
-        const bloodGroup = searchParams.get('blood_group')
-        const status = searchParams.get('status')
+
+        const getInventorySchema = z.object({
+            blood_group: z.string().nullable().optional(),
+            status: z.string().nullable().optional()
+        })
+
+        const parsedQuery = getInventorySchema.safeParse({
+            blood_group: searchParams.get('blood_group'),
+            status: searchParams.get('status')
+        })
+
+        if (!parsedQuery.success) {
+            return NextResponse.json({ success: false, error: 'Invalid query parameters' }, { status: 400 })
+        }
+
+        const { blood_group: bloodGroup, status } = parsedQuery.data
 
         // RLS handles org filtering automatically, but for non-admin we add explicit filter
         let query = supabase
@@ -118,11 +134,22 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { bloodGroup, componentType, quantity, collectionDate, expiryDate } = body
 
-        if (!bloodGroup || !componentType || !quantity || !collectionDate || !expiryDate) {
-            return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+        const addInventorySchema = z.object({
+            bloodGroup: z.string().min(1, "Blood group is required"),
+            componentType: z.string().min(1, "Component type is required"),
+            quantity: z.number().int().positive("Quantity must be positive"),
+            collectionDate: z.string().min(1, "Collection date is required"),
+            expiryDate: z.string().min(1, "Expiry date is required")
+        })
+
+        const parsed = addInventorySchema.safeParse(body)
+
+        if (!parsed.success) {
+            return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 })
         }
+
+        const { bloodGroup, componentType, quantity, collectionDate, expiryDate } = parsed.data
 
         const orgId = profile.organization_id
         if (!orgId && profile.role !== 'admin') {
@@ -160,6 +187,18 @@ export async function POST(request: Request) {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         }
+
+        await logAuditEvent({
+            action: 'ADD_INVENTORY',
+            actorId: user.id,
+            actorRole: profile.role,
+            targetId: row.id,
+            metadata: {
+                bloodGroup,
+                componentType,
+                quantity
+            }
+        })
 
         return NextResponse.json({ success: true, data: item }, { status: 201 })
     } catch {

@@ -69,6 +69,18 @@ export async function GET() {
     }
 }
 
+import { z } from 'zod'
+
+const createRequestSchema = z.object({
+    bloodGroup: z.string().min(1, "Blood group is required"),
+    componentType: z.string().min(1, "Component type is required"),
+    quantity: z.number().int().positive("Quantity must be a positive integer"),
+    urgency: z.string().min(1, "Urgency is required"),
+    requiredDate: z.string().min(1, "Required date is required"),
+    prescriptionFileId: z.string().optional().nullable(),
+    bloodBankId: z.string().optional().nullable(),
+})
+
 export async function POST(request: Request) {
     try {
         const supabase = await createClient()
@@ -90,11 +102,13 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { bloodGroup, componentType, quantity, urgency, requiredDate, prescriptionFileId, bloodBankId } = body
+        const parsed = createRequestSchema.safeParse(body)
 
-        if (!bloodGroup || !componentType || !quantity || !urgency || !requiredDate) {
-            return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+        if (!parsed.success) {
+            return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 })
         }
+
+        const { bloodGroup, componentType, quantity, urgency, requiredDate, prescriptionFileId, bloodBankId } = parsed.data
 
         const orgId = profile.organization_id
         if (!orgId) {
