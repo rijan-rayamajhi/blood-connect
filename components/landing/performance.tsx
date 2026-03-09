@@ -37,44 +37,54 @@ const metrics = [
 
 export function Performance() {
     return (
-        <section className="py-24 bg-background relative overflow-hidden">
+        <section className="py-32 bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden">
             {/* Subtle background decoration */}
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px] -z-10" />
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] -z-10" />
 
-            <div className="container px-4 md:px-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                    <div className="space-y-6">
-                        <div className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-sm text-muted-foreground shadow-sm">
-                            <Zap className="h-4 w-4 mr-2 text-critical" />
+            <div className="container px-4 md:px-6 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+                    <div className="space-y-8">
+                        <div className="inline-flex items-center rounded-full border border-border bg-background/50 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
+                            <Zap className="h-4 w-4 mr-2 text-amber-500" />
                             High Performance Infrastructure
                         </div>
-                        <h2 className="text-3xl font-bold tracking-tighter md:text-5xl lg:text-6xl text-balance">
+                        <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-balance leading-[1.1]">
                             Built for Speed, <br />
-                            <span className="text-critical">Secured for Trust.</span>
+                            <span className="bg-gradient-to-r from-critical to-red-600 bg-clip-text text-transparent">Secured for Trust.</span>
                         </h2>
-                        <p className="text-muted-foreground md:text-xl max-w-[500px] leading-relaxed">
+                        <p className="text-muted-foreground text-lg md:text-xl max-w-[550px] leading-relaxed">
                             When lives are at stake, performance isn&apos;t optional. Our architecture ensures milliseconds latency and absolute data integrity for every request.
                         </p>
+                        {/* Server/Tech Image */}
+                        <div className="rounded-2xl overflow-hidden border border-border/30 shadow-lg aspect-[16/9] max-w-md hidden lg:block">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=340&fit=crop&crop=center&q=80"
+                                alt="Server infrastructure ensuring high availability"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {metrics.map((metric, index) => (
                             <motion.div
                                 key={metric.title}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                viewport={{ once: true }}
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
+                                viewport={{ once: true, margin: "-50px" }}
                             >
-                                <Card className="border-muted-foreground/10 shadow-sm transition-all hover:shadow-md h-full">
-                                    <CardHeader className="pb-2">
-                                        <div className={`w-10 h-10 rounded-lg ${metric.bg} ${metric.color} flex items-center justify-center mb-3`}>
-                                            <metric.icon className="h-5 w-5" />
+                                <Card className="bg-background/80 backdrop-blur-xl border-border/40 shadow-lg shadow-black/5 dark:shadow-white/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/20 h-full relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent dark:from-white/0 pointer-events-none" />
+                                    <CardHeader className="pb-4 relative z-10">
+                                        <div className={`w-12 h-12 rounded-xl ${metric.bg} ${metric.color} flex items-center justify-center mb-4 shadow-sm backdrop-blur-md`}>
+                                            <metric.icon className="h-6 w-6" />
                                         </div>
-                                        <CardTitle className="text-2xl font-bold">{metric.title}</CardTitle>
+                                        <CardTitle className="text-2xl font-bold tracking-tight">{metric.title}</CardTitle>
                                     </CardHeader>
-                                    <CardContent>
-                                        <p className="text-sm text-muted-foreground">
+                                    <CardContent className="relative z-10">
+                                        <p className="text-base text-muted-foreground leading-relaxed">
                                             {metric.description}
                                         </p>
                                     </CardContent>

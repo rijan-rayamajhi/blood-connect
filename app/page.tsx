@@ -13,20 +13,20 @@ import { Button } from "@/components/ui/button"
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <div className="flex gap-2 items-center font-bold text-xl">
-            <span className="text-critical text-2xl">BloodConnect</span>
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl z-50 transition-all border border-border/40 bg-background/60 backdrop-blur-xl shadow-2xl shadow-black/5 dark:shadow-black/40 rounded-full">
+        <div className="flex h-14 items-center justify-between px-6">
+          <div className="flex gap-2 items-center font-bold text-lg tracking-tight">
+            <span className="bg-gradient-to-r from-critical to-blue-600 bg-clip-text text-transparent">BloodConnect</span>
           </div>
           <nav className="hidden md:flex gap-8 items-center">
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Features</a>
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Network</a>
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Impact</a>
-            <div className="flex gap-4">
-              <Button variant="ghost" size="sm" asChild>
+            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
+            <a href="#network" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Network</a>
+            <a href="#impact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Impact</a>
+            <div className="flex gap-3">
+              <Button variant="ghost" size="sm" className="rounded-full font-medium" asChild>
                 <Link href="/login">Login</Link>
               </Button>
-              <Button variant="default" size="sm" className="bg-critical hover:bg-critical/90" asChild>
+              <Button size="sm" className="rounded-full font-medium bg-critical hover:bg-critical/90 shadow-lg shadow-critical/20" asChild>
                 <Link href="/register">Register</Link>
               </Button>
             </div>

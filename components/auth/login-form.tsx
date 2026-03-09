@@ -111,107 +111,117 @@ export function LoginForm() {
     }
 
     return (
-        <Card className="w-full max-w-md shadow-lg border-muted/40">
-            <CardHeader className="space-y-1 text-center">
-                <CardTitle className="text-2xl font-bold text-critical">BloodConnect</CardTitle>
-                <CardDescription>
-                    Enter your credentials to access the portal
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs defaultValue="password" className="w-full">
-                    <TabsList className="w-full mb-4">
-                        <TabsTrigger value="password" className="flex-1">
-                            Password
-                        </TabsTrigger>
-                        <TabsTrigger value="otp" className="flex-1">
-                            OTP
-                        </TabsTrigger>
-                    </TabsList>
+        <div className="space-y-6">
+            <div className="flex flex-col items-center mb-4 lg:hidden">
+                <div className="w-12 h-12 rounded-2xl bg-critical flex items-center justify-center shadow-lg shadow-critical/20 mb-4">
+                    <span className="text-white font-bold text-xl">BC</span>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight">BloodConnect</h1>
+            </div>
 
-                    <TabsContent value="password">
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Email</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                    <Input placeholder="name@example.com" className="pl-9" {...field} />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Password</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                    <Input type="password" placeholder="••••••••" className="pl-9" {...field} />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="flex items-center justify-between">
+            <Card className="w-full max-w-md shadow-2xl border-border/40 bg-background/80 backdrop-blur-sm overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-critical" />
+                <CardHeader className="space-y-2 text-center pt-8">
+                    <CardTitle className="text-3xl font-extrabold tracking-tight">Welcome Back</CardTitle>
+                    <CardDescription className="text-base">
+                        Access your coordination dashboard
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="password" className="w-full">
+                        <TabsList className="w-full mb-4">
+                            <TabsTrigger value="password" className="flex-1">
+                                Password
+                            </TabsTrigger>
+                            <TabsTrigger value="otp" className="flex-1">
+                                OTP
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="password">
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                     <FormField
                                         control={form.control}
-                                        name="rememberMe"
+                                        name="email"
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                                            <FormItem>
+                                                <FormLabel>Email</FormLabel>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <div className="relative">
+                                                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                        <Input placeholder="name@example.com" className="pl-9" {...field} />
+                                                    </div>
                                                 </FormControl>
-                                                <div className="space-y-1 leading-none">
-                                                    <FormLabel className="font-normal text-muted-foreground">
-                                                        Remember me
-                                                    </FormLabel>
-                                                </div>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <Link
-                                        href="/forgot-password"
-                                        className="text-sm font-medium text-primary hover:underline"
-                                    >
-                                        Forgot password?
-                                    </Link>
-                                </div>
-                                <Button type="submit" className="w-full bg-critical hover:bg-critical/90" disabled={isLoading || isLocked}>
-                                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLocked ? `Account Locked (${formatTime(timeLeft)})` : 'Sign In'}
-                                </Button>
-                            </form>
-                        </Form>
-                    </TabsContent>
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Password</FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                        <Input type="password" placeholder="••••••••" className="pl-9" {...field} />
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="flex items-center justify-between">
+                                        <FormField
+                                            control={form.control}
+                                            name="rememberMe"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
+                                                    </FormControl>
+                                                    <div className="space-y-1 leading-none">
+                                                        <FormLabel className="font-normal text-muted-foreground">
+                                                            Remember me
+                                                        </FormLabel>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-sm font-medium text-primary hover:underline"
+                                        >
+                                            Forgot password?
+                                        </Link>
+                                    </div>
+                                    <Button type="submit" className="w-full bg-critical hover:bg-critical/90" disabled={isLoading || isLocked}>
+                                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {isLocked ? `Account Locked (${formatTime(timeLeft)})` : 'Sign In'}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </TabsContent>
 
-                    <TabsContent value="otp">
-                        <OtpForm />
-                    </TabsContent>
-                </Tabs>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4 text-center text-sm text-muted-foreground">
-                <div>
-                    Don&apos;t have an account?{" "}
-                    <Link href="/register" className="font-medium text-primary hover:underline">
-                        Register for access
-                    </Link>
-                </div>
-            </CardFooter>
-        </Card>
+                        <TabsContent value="otp">
+                            <OtpForm />
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+                <CardFooter className="flex flex-col space-y-4 text-center text-sm text-muted-foreground">
+                    <div>
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register" className="font-medium text-primary hover:underline">
+                            Register for access
+                        </Link>
+                    </div>
+                </CardFooter>
+            </Card>
+        </div>
     )
 }
